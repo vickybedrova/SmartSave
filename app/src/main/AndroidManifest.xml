@@ -28,6 +28,10 @@
             android:name=".WelcomeActivity"
             android:exported="false"
             android:theme="@style/Theme.SmartSave" />
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SmartSave" />
 
     </application>
 

@@ -1,5 +1,6 @@
 package com.example.smartsave
 
+import android.content.Intent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,7 +34,7 @@ data class WelcomeCarouselSlide(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun WelcomeScreen(onSetupClick: () -> Unit = {}) {
+fun WelcomeScreen() {
     val slides = listOf(
         WelcomeCarouselSlide(
             title = stringResource(R.string.welcome_carousel_first_title),
@@ -70,8 +72,9 @@ fun WelcomeScreen(onSetupClick: () -> Unit = {}) {
 
     val pagerState = rememberPagerState(pageCount = { slides.size })
 
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    var isUserScrolling by remember { mutableStateOf(false) }
+    val isUserScrolling by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -127,7 +130,10 @@ fun WelcomeScreen(onSetupClick: () -> Unit = {}) {
         }
 
         Button(
-            onClick = onSetupClick,
+            onClick = {
+                val intent = Intent(context, LoginActivity::class.java)
+                context.startActivity(intent)
+            },
             shape = RoundedCornerShape(32.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             modifier = Modifier
@@ -135,7 +141,7 @@ fun WelcomeScreen(onSetupClick: () -> Unit = {}) {
                 .height(56.dp)
         ) {
             Text(
-                text = stringResource(R.string.landing_button),
+                text = stringResource(R.string.welcome_button),
                 style = MaterialTheme.typography.labelLarge.copy(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
