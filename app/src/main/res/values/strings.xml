@@ -1,0 +1,29 @@
+<resources>
+    <string name="smartsave">SmartSave</string>
+
+    <string name="landing_page_title">Save smarter with</string>
+    <string name="landing_page_message">Start saving with each transaction and watch your savings grow with a return bonus deposited automatically to your account at the end of each month.</string>
+    <string name="landing_button">Get Started</string>
+    <string name="welcome_button">Setup SmartSave</string>
+
+    <string name="welcome_carousel_first_title">Save without sacrificing</string>
+    <string name="welcome_carousel_first_subtitle">Start with just 1% of each sale — you won’t even notice it’s gone.</string>
+    <string name="welcome_carousel_first_message">SmartSave lets you choose how much to save 1–15% for each transaction."</string>
+    <string name="welcome_carousel_first_bullet_one">Flexible and customizable</string>
+    <string name="welcome_carousel_first_bullet_two">Works with your cash flow</string>
+    <string name="welcome_carousel_first_bullet_three">Designed for small business realities</string>
+
+    <string name="welcome_carousel_second_title">Be ready for\nwhat’s next</string>
+    <string name="welcome_carousel_second_subtitle">Repairs, quiet seasons, or new gear — now you’ll have a cushion.</string>
+    <string name="welcome_carousel_second_message">SmartSave builds a safety net for when you need it most.</string>
+    <string name="welcome_carousel_second_bullet_one">Avoid debt or last-minute loans</string>
+    <string name="welcome_carousel_second_bullet_two">Stay in control during surprises</string>
+    <string name="welcome_carousel_second_bullet_three">Plan ahead with confidence</string>
+
+    <string name="welcome_carousel_third_title">Fully Integrated,\nZero Hassle</string>
+    <string name="welcome_carousel_third_subtitle">No apps, no spreadsheets</string>
+    <string name="welcome_carousel_third_message">Everything runs in the background, integrated with your POS.</string>
+    <string name="welcome_carousel_third_bullet_one">Choose your saving percentage once - we handle the rest</string>
+    <string name="welcome_carousel_third_bullet_two">Designed for busy merchants, not accountants</string>
+
+</resources>
