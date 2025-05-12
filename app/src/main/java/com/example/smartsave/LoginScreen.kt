@@ -132,7 +132,12 @@ fun LoginScreen() {
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { /* TODO: Handle login */ },
+            /*  TO DO: Add login
+            *   CURRENTLY: Automatically redirected to Dashboard for testing purposes */
+            onClick = {
+                val intent = Intent(context, DashboardActivity::class.java)
+                context.startActivity(intent)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
