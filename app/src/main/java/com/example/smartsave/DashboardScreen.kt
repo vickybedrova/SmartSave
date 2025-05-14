@@ -6,47 +6,28 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.smartsave.domain.logic.DashboardService
 import com.example.smartsave.domain.logic.SmartSaveCalculator
 import com.example.smartsave.data.MyPosTransactionService
 import com.example.smartsave.model.DashboardState
 import com.example.smartsave.DashboardContent
+import com.example.smartsave.model.SimpleTransaction
 
 
 @Composable
 fun DashboardScreen() {
-    var dashboardState by remember { mutableStateOf<DashboardState?>(null) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val dummyTransactions = listOf(
+        SimpleTransaction("Transaction", "April 16",140.0,3.50 ),
+        SimpleTransaction("Withdrawal", "April 15",-60.0, 0.0 ),
+        SimpleTransaction("Transaction", "April 14",350.0,8.75, )
+    )
 
-    LaunchedEffect(Unit) {
-        val dashboardService = DashboardService(
-            MyPosTransactionService(),
-            SmartSaveCalculator(5.0, 1.5)
-        )
-
-        dashboardService.getDashboardDataForCurrentMonth(object : DashboardService.DashboardCallback {
-            override fun onSuccess(state: DashboardState) {
-                dashboardState = state
-            }
-
-            override fun onFailure(t: Throwable) {
-                errorMessage = "Failed to load data: ${t.message}"
-            }
-        })
-    }
-
-    when {
-        errorMessage != null -> {
-            Text("Error: $errorMessage", color = Color.Red)
-        }
-        dashboardState == null -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-        }
-        else -> {
-            DashboardContent(state = dashboardState!!)
-        }
-    }
+    DashboardContent(dummyTransactions)
 }
 
+@Preview(showBackground = true)
+@Composable
+fun PreviewDashboard() {
+    DashboardScreen()
+}
