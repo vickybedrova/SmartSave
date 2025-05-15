@@ -10,12 +10,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 
 @Composable
-fun AnalyticsScreen(onBack: () -> Unit) {
+fun AnalyticsScreen(navController: NavController) {
     val colors = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
 
@@ -29,7 +28,7 @@ fun AnalyticsScreen(onBack: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
-            IconButton(onClick = { /* Handle logout */ }) {
+            IconButton(onClick = { }) {
                 Icon(
                     imageVector = Icons.Default.ExitToApp,
                     contentDescription = "Logout",
@@ -40,7 +39,8 @@ fun AnalyticsScreen(onBack: () -> Unit) {
 
         Text(
             text = "ANALYTICS",
-            style = typography.headlineSmall.copy(color = colors.primary),
+            style = typography.headlineSmall,
+            color = colors.primary,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
@@ -52,7 +52,7 @@ fun AnalyticsScreen(onBack: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onBack) {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.onBackground)
                 }
                 Text("SmartSave", style = typography.titleSmall)
@@ -85,7 +85,7 @@ fun AnalyticsScreen(onBack: () -> Unit) {
                 shape = RoundedCornerShape(32.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
             ) {
-                Icon(Icons.Default.DateRange, contentDescription = "Calendar", tint = Color.White)
+                Icon(Icons.Default.DateRange, contentDescription = "Calendar", tint = colors.onPrimary)
             }
         }
 
@@ -105,7 +105,7 @@ fun AnalyticsCard(value: String, label: String) {
     Box(
         modifier = Modifier
             .size(width = 120.dp, height = 80.dp)
-            .background(Color.White, shape = RoundedCornerShape(12.dp))
+            .background(colors.background, shape = RoundedCornerShape(12.dp))
             .border(1.dp, colors.primary.copy(alpha = 0.2f), shape = RoundedCornerShape(12.dp))
             .padding(12.dp)
     ) {
@@ -117,10 +117,4 @@ fun AnalyticsCard(value: String, label: String) {
             Text(text = label, style = typography.bodySmall.copy(color = colors.onBackground.copy(alpha = 0.6f)))
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AnalyticsPreview() {
-    AnalyticsScreen(onBack = {})
 }

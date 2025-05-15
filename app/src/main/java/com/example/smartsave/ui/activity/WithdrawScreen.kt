@@ -12,14 +12,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import com.example.smartsave.ui.theme.greyFieldBackground
 
 @Composable
-fun WithdrawScreen(onBack: () -> Unit) {
+fun WithdrawScreen(navController: NavController) {
     val colors = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
 
@@ -29,10 +29,10 @@ fun WithdrawScreen(onBack: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .background(colors.background)
-            .padding(24.dp)
+            .padding(horizontal = 24.dp, vertical = 32.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) {
+            IconButton(onClick = { navController.popBackStack() }) {
                 Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.onBackground)
             }
             Text(
@@ -46,13 +46,15 @@ fun WithdrawScreen(onBack: () -> Unit) {
 
         Text(
             text = "WITHDRAW SAVINGS",
-            style = typography.headlineSmall.copy(color = colors.primary),
+            style = typography.headlineSmall,
+            color = colors.primary,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
         Text(
             text = "Saving plan 3%",
-            style = typography.bodySmall.copy(color = colors.onBackground.copy(alpha = 0.6f)),
+            style = typography.bodySmall,
+            color = colors.onBackground.copy(alpha = 0.6f),
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
@@ -66,7 +68,7 @@ fun WithdrawScreen(onBack: () -> Unit) {
                 .border(width = 4.dp, color = colors.primary, shape = CircleShape)
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("700 lv", style = typography.headlineSmall, color = colors.onBackground)
+                Text("700 lv", style = typography.headlineMedium)
                 Text("Total Savings", style = typography.bodySmall, color = colors.onBackground.copy(alpha = 0.6f))
             }
         }
@@ -75,8 +77,7 @@ fun WithdrawScreen(onBack: () -> Unit) {
 
         Text(
             text = "Enter Amount",
-            style = typography.bodyLarge,
-            color = colors.onBackground,
+            style = typography.bodyLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Medium),
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
@@ -92,8 +93,8 @@ fun WithdrawScreen(onBack: () -> Unit) {
                 modifier = Modifier
                     .width(80.dp)
                     .fillMaxHeight()
-                    .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(8.dp))
-                    .border(1.dp, Color.Gray, shape = RoundedCornerShape(8.dp)),
+                    .background(greyFieldBackground, shape = RoundedCornerShape(12.dp))
+                    .border(1.dp, colors.outline, shape = RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Text("BGN", style = typography.bodyMedium)
@@ -110,7 +111,7 @@ fun WithdrawScreen(onBack: () -> Unit) {
                     .width(160.dp)
                     .height(56.dp),
                 textStyle = typography.bodyLarge,
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(12.dp)
             )
         }
 
@@ -140,13 +141,14 @@ fun WithdrawScreen(onBack: () -> Unit) {
             shape = RoundedCornerShape(32.dp),
             colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
         ) {
-            Text("Withdraw", style = typography.labelLarge.copy(color = Color.White, fontSize = 16.sp))
+            Text(
+                text = "Withdraw",
+                style = typography.labelLarge.copy(
+                    fontSize = 20.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    color = colors.onPrimary
+                )
+            )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun WithdrawScreenPreview() {
-    WithdrawScreen(onBack = {})
 }
