@@ -9,14 +9,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import androidx.navigation.NavController
+import com.example.smartsave.R
+import com.example.smartsave.ui.navigation.Screen
 
 @Composable
-fun SmartSaveSetupScreen() {
+fun SmartSaveSetupScreen(navController: NavController) {
     val context = LocalContext.current
     val colors = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
@@ -34,10 +37,11 @@ fun SmartSaveSetupScreen() {
             Text(
                 text = buildAnnotatedString {
                     withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append("Customize your\n")
+                        append(stringResource(R.string.customize_your))
                     }
+                    append("\n")
                     withStyle(SpanStyle(color = colors.primary, fontWeight = FontWeight.Bold)) {
-                        append("SmartSave by myPOS")
+                        append(stringResource(R.string.smart_save_by_mypos))
                     }
                 },
                 style = typography.headlineSmall.copy(lineHeight = 32.sp),
@@ -47,7 +51,7 @@ fun SmartSaveSetupScreen() {
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "The selected percentage of each transaction will be transferred to your SmartSave savings account. The savings + the bonus will be automatically transferred by the month’s end.",
+                text = stringResource(R.string.smart_save_description),
                 style = typography.bodyMedium.copy(color = colors.onBackground.copy(alpha = 0.75f)),
                 textAlign = TextAlign.Center
             )
@@ -60,7 +64,7 @@ fun SmartSaveSetupScreen() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Percentage to Save (%)",
+                    text = stringResource(R.string.percentage_to_save),
                     style = typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
                 )
                 Text(
@@ -92,16 +96,16 @@ fun SmartSaveSetupScreen() {
             Spacer(modifier = Modifier.height(24.dp))
 
             val annotatedText = buildAnnotatedString {
-                append("By clicking “Setup SmartSave” you agree to our ")
+                append(stringResource(R.string.agree_to_terms_prefix))
                 pushStringAnnotation("terms", "https://example.com/terms")
                 withStyle(SpanStyle(color = colors.primary)) {
-                    append("Terms and Conditions")
+                    append(stringResource(R.string.terms_and_conditions))
                 }
                 pop()
-                append(" and ")
+                append(stringResource(R.string.and))
                 pushStringAnnotation("privacy", "https://example.com/privacy")
                 withStyle(SpanStyle(color = colors.primary)) {
-                    append("Privacy Statement")
+                    append(stringResource(R.string.privacy_statement))
                 }
                 pop()
             }
@@ -120,7 +124,10 @@ fun SmartSaveSetupScreen() {
 
         Button(
             onClick = {
-                Toast.makeText(context, "Saved with ${percentage.toInt()}%", Toast.LENGTH_SHORT).show()
+               // Toast.makeText(context, "Saved with ${percentage.toInt()}%", Toast.LENGTH_SHORT).show()
+                navController.navigate(Screen.Dashboard.route) {
+                    popUpTo(Screen.Setup.route) { inclusive = true }
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -129,7 +136,7 @@ fun SmartSaveSetupScreen() {
             colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
         ) {
             Text(
-                text = "Save Setup",
+                text = stringResource(R.string.setup_smartsave),
                 style = typography.labelLarge.copy(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
@@ -138,10 +145,4 @@ fun SmartSaveSetupScreen() {
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewSmartSaveSetupScreen() {
-    SmartSaveSetupScreen()
 }
