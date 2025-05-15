@@ -8,7 +8,16 @@
       <SelectionState runConfigName="WithdrawScreenPreview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="PreviewSmartSaveSetupScreen">
+      <SelectionState runConfigName="SmartSaveSetupActivity">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="DashboardActivity">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="PreviewDashboard">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="PreviewSmartSaveSetupScreen (1)">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

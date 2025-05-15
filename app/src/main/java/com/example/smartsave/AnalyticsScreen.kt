@@ -22,7 +22,6 @@ fun AnalyticsScreen(onBack: () -> Unit) {
             .background(Color.White)
             .padding(16.dp)
     ) {
-        // Top-right logout
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
@@ -36,7 +35,6 @@ fun AnalyticsScreen(onBack: () -> Unit) {
             }
         }
 
-        // Title
         Text(
             text = "ANALYTICS",
             fontSize = 20.sp,
@@ -46,7 +44,6 @@ fun AnalyticsScreen(onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Back + Title + Download
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -66,7 +63,6 @@ fun AnalyticsScreen(onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Info Cards Row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -78,7 +74,6 @@ fun AnalyticsScreen(onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Calendar Button
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
@@ -93,7 +88,6 @@ fun AnalyticsScreen(onBack: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Section titles (just text for now, can later add charts or graphs)
         Text("Monthly Breakdown", fontSize = 16.sp, color = Color.Black)
         Spacer(modifier = Modifier.height(8.dp))
         Text("Savings Growth", fontSize = 16.sp, color = Color.Black)

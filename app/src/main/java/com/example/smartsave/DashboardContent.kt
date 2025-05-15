@@ -29,7 +29,6 @@ fun DashboardContent(transactions: List<SimpleTransaction>) {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Top-right logout button
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -44,7 +43,6 @@ fun DashboardContent(transactions: List<SimpleTransaction>) {
             }
         }
 
-        // Title
         Text("SMARTSAVE OVERVIEW", fontSize = 20.sp, color = Color(0xFF3D5AFE))
         Text("Saving plan 3%", fontSize = 14.sp, color = Color.Gray)
         Spacer(modifier = Modifier.height(16.dp))
@@ -101,7 +99,6 @@ fun DashboardContent(transactions: List<SimpleTransaction>) {
 
         Spacer(modifier = Modifier.height(30.dp))
 
-        // Transaction History Title
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -123,7 +120,6 @@ fun DashboardContent(transactions: List<SimpleTransaction>) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Filter Row
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             modifier = Modifier.fillMaxWidth()
@@ -191,7 +187,6 @@ fun TransactionCard(tx: SimpleTransaction) {
             Text(tx.date, fontSize = 12.sp, color = Color.Gray)
         }
 
-        // Row for Savings and Amount
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
