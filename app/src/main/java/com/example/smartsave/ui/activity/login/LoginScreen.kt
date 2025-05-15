@@ -1,4 +1,4 @@
-package com.example.smartsave
+package com.example.smartsave.ui.activity.login
 
 import android.app.Activity
 import android.content.Intent
@@ -18,6 +18,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import com.example.smartsave.ui.activity.dashboard.DashboardActivity
+import com.example.smartsave.ui.activity.smartSaveSetup.SmartSaveSetupActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*

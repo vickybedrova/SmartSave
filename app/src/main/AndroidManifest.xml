@@ -17,7 +17,7 @@
         tools:targetApi="31">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.activity.MainActivity"
             android:exported="true"
             android:label="@string/smartsave"
             android:theme="@style/Theme.SmartSave">
@@ -28,18 +28,18 @@
         </activity>
 
         <activity
-            android:name=".WelcomeActivity"
+            android:name=".ui.activity.welcome.WelcomeActivity"
             android:exported="false"
             android:theme="@style/Theme.SmartSave" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".ui.activity.login.LoginActivity"
             android:exported="false"
             android:theme="@style/Theme.SmartSave" />
-        <activity android:name=".DashboardActivity"
+        <activity android:name=".ui.activity.dashboard.DashboardActivity"
             android:exported="false"
             android:theme="@style/Theme.SmartSave" />
         <activity
-            android:name=".SmartSaveSetupActivity"
+            android:name=".ui.activity.smartSaveSetup.SmartSaveSetupActivity"
             android:exported="false"
             android:theme="@style/Theme.SmartSave" />
 

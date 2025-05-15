@@ -1,4 +1,4 @@
-package com.example.smartsave
+package com.example.smartsave.ui.activity
 
 import android.content.Intent
 import androidx.compose.foundation.Image
@@ -16,6 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.smartsave.R
+import com.example.smartsave.ui.activity.welcome.WelcomeActivity
 
 @Composable
 fun LandingScreen() {

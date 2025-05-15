@@ -1,4 +1,4 @@
-package com.example.smartsave
+package com.example.smartsave.ui.activity
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

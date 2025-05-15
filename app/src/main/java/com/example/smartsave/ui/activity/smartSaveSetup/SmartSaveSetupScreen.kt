@@ -1,4 +1,4 @@
-package com.example.smartsave
+package com.example.smartsave.ui.activity.smartSaveSetup
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*

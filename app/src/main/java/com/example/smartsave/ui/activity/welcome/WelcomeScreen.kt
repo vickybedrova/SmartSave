@@ -1,4 +1,4 @@
-package com.example.smartsave
+package com.example.smartsave.ui.activity.welcome
 
 import android.content.Intent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.smartsave.R
+import com.example.smartsave.ui.activity.login.LoginActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

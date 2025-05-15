@@ -1,18 +1,16 @@
-package com.example.smartsave
+package com.example.smartsave.ui.activity.welcome
 
-import com.google.firebase.FirebaseApp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.example.smartsave.ui.theme.SmartSaveTheme
 
-class LoginActivity : ComponentActivity() {
+class WelcomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        FirebaseApp.initializeApp(this)
         setContent {
             SmartSaveTheme {
-                LoginScreen()
+                WelcomeScreen()
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.example.smartsave
+package com.example.smartsave.ui.activity.dashboard
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
@@ -13,7 +13,8 @@ fun DashboardScreen() {
     )
     DashboardContent(
         transactions = dummyTransactions
-    )}
+    )
+}
 
 @Preview(showBackground = true)
 @Composable
