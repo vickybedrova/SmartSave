@@ -8,7 +8,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.example.smartsave.DashboardContent
 import com.example.smartsave.model.Transaction // Your JAVA Transaction model
+import com.example.smartsave.ui.activity.login.LoginActivity
 import com.example.smartsave.ui.theme.SmartSaveTheme // Your app's theme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
