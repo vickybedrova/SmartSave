@@ -254,9 +254,10 @@ fun TransactionCard(tx: Transaction) { // <<< USE THE NEW Transaction TYPE
                 color = MaterialTheme.colorScheme.onSurface // Use theme color
             )
             Text(
-                tx.getFormattedDate("dd MMM, HH:mm"), // Calls tx.getFormattedDate()
+
+                tx.getFormattedDate(), // "dd MMM yyyy, HH:mm" from Transaction.java
                 fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant // Use theme color
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             // Optionally display the transaction type for clarity
             // Text(tx.type, fontSize = 10.sp, color = MaterialTheme.colorScheme.outline)

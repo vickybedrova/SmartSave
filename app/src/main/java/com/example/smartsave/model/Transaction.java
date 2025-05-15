@@ -94,12 +94,28 @@ public class Transaction {
     @Exclude
     public String getDisplayAmountForList() {
         // For INCOME/EXPENSE, show the gross amount.
-        // For WITHDRAW/SAVINGS_DEPOSIT/INTEREST_PAYMENT, 'amount' is the direct savings impact.
-        String prefix = "";
-        if (Objects.equals(type, "INCOME") || Objects.equals(type, "EXPENSE" ) || Objects.equals(type, "WITHDRAW")) {
-            prefix = "Amount: ";
+        // For WITHDRAW, SAVINGS_DEPOSIT, INTEREST_PAYMENT, 'amount' IS the direct impact.
+        // We want to AVOID showing "Amount: X" if it's a direct savings impact type.
+        String typeUpper = (type != null) ? type.toUpperCase() : "";
+
+        switch (typeUpper) {
+            case "INCOME":
+            case "EXPENSE":
+                // For income/expense, 'amount' is the gross transaction value.
+                // 'savingsCalculated' is the portion that went to savings.
+                return String.format(Locale.US, "Amount: %.2f %s", amount, getCurrency());
+            case "WITHDRAW":
+            case "SAVINGS_DEPOSIT":
+            case "INTEREST_PAYMENT":
+                // For these types, 'amount' is the direct value affecting savings.
+                return ""; // Or: return String.format(Locale.US, "Value: %.2f %s", amount, getCurrency());
+            default:
+                // Fallback for unknown types, show the amount if present
+                if (amount != 0) {
+                    return String.format(Locale.US, "Amount: %.2f %s", amount, getCurrency());
+                }
+                return "";
         }
-        return String.format(Locale.US, "%s%.2f %s", prefix, amount, getCurrency());
     }
 
     // Optional: toString, equals, hashCode for debugging or use in collections
