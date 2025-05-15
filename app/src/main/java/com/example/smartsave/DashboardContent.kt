@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -15,36 +16,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.smartsave.model.SimpleTransaction
-
 import kotlin.math.abs
 
 @Composable
 fun DashboardContent(transactions: List<SimpleTransaction>) {
+    val colors = MaterialTheme.colorScheme
+    val typography = MaterialTheme.typography
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp),
+            .background(colors.background)
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
-            IconButton(onClick = { /* TODO: handle logout */ }) {
+            IconButton(onClick = { /* handle logout */ }) {
                 Icon(
                     imageVector = Icons.Default.ExitToApp,
                     contentDescription = "Logout",
-                    tint = Color.Gray
+                    tint = colors.onBackground.copy(alpha = 0.6f)
                 )
             }
         }
 
-        Text("SMARTSAVE OVERVIEW", fontSize = 20.sp, color = Color(0xFF3D5AFE))
-        Text("Saving plan 3%", fontSize = 14.sp, color = Color.Gray)
+        Text("SMARTSAVE OVERVIEW", style = typography.headlineSmall.copy(color = colors.primary))
+        Text("Saving plan 3%", style = typography.bodySmall.copy(color = colors.onBackground.copy(alpha = 0.6f)))
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -53,41 +54,40 @@ fun DashboardContent(transactions: List<SimpleTransaction>) {
             ActionButton("Analytics", Icons.Default.List)
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(160.dp)
-                .border(width = 4.dp, color = Color(0xFF3D5AFE), shape = CircleShape)
+                .border(width = 4.dp, color = colors.primary, shape = CircleShape)
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("700 lv", fontSize = 22.sp, color = Color.Black)
-                Text("- 100 lv after 24 h", fontSize = 14.sp, color = Color.Gray)
+                Text("700 lv", style = typography.headlineSmall)
+                Text("- 100 lv after 24 h", style = typography.bodySmall.copy(color = colors.onBackground.copy(alpha = 0.6f)))
             }
         }
 
-
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Column(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Total Savings", fontSize = 12.sp)
-            Text("Interest Rate 2.24", fontSize = 12.sp, color = Color.Gray)
+            Text("Total Savings", style = typography.bodySmall)
+            Text("Interest Rate 2.24", style = typography.bodySmall.copy(color = colors.onBackground.copy(alpha = 0.6f)))
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedButton(onClick = {}) {
+            OutlinedButton(
+                onClick = {},
+                shape = RoundedCornerShape(32.dp)
+            ) {
                 Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Withdraw")
+                Text("Withdraw", style = typography.labelLarge)
             }
         }
 
-
-
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -97,7 +97,7 @@ fun DashboardContent(transactions: List<SimpleTransaction>) {
             InfoCard("Progress this month", "700 BGN")
         }
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -108,14 +108,10 @@ fun DashboardContent(transactions: List<SimpleTransaction>) {
             Icon(
                 imageVector = Icons.Default.Refresh,
                 contentDescription = "Transaction History",
-                tint = Color.Gray
+                tint = colors.onBackground.copy(alpha = 0.6f)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Transaction History",
-                fontSize = 16.sp,
-                color = Color.Black
-            )
+            Text("Transaction History", style = typography.titleMedium)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -124,17 +120,10 @@ fun DashboardContent(transactions: List<SimpleTransaction>) {
             horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("All", color = Color.Gray)
-            Text(
-                "Today",
-                color = Color.White,
-                modifier = Modifier
-                    .background(Color(0xFF3D5AFE), shape = MaterialTheme.shapes.small)
-                    .padding(horizontal = 12.dp, vertical = 4.dp)
-            )
-            Text("This Week", color = Color.Gray)
+            FilterChip("All", selected = false)
+            FilterChip("Today", selected = true)
+            FilterChip("This Week", selected = false)
         }
-
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -151,11 +140,13 @@ fun DashboardContent(transactions: List<SimpleTransaction>) {
 fun ActionButton(text: String, icon: ImageVector) {
     Button(
         onClick = { },
-        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3D5AFE))
+        shape = RoundedCornerShape(32.dp),
+        modifier = Modifier.height(48.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
     ) {
         Icon(icon, contentDescription = null, tint = Color.White)
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(text, color = Color.White)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text, color = Color.White, style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -164,13 +155,28 @@ fun InfoCard(title: String, value: String) {
     Column(
         modifier = Modifier
             .width(140.dp)
-            .background(Color.White, MaterialTheme.shapes.medium)
-            .border(1.dp, Color(0xFF3D5AFE), MaterialTheme.shapes.medium)
-            .padding(8.dp)
+            .background(Color.White, shape = RoundedCornerShape(12.dp))
+            .border(1.dp, MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(12.dp))
+            .padding(12.dp)
     ) {
-        Text(title, fontSize = 12.sp, color = Color.Gray)
-        Text(value, fontSize = 16.sp, color = Color.Black)
+        Text(title, style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray))
+        Text(value, style = MaterialTheme.typography.bodyLarge)
     }
+}
+
+@Composable
+fun FilterChip(text: String, selected: Boolean) {
+    Text(
+        text = text,
+        color = if (selected) Color.White else Color.Gray,
+        style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier
+            .background(
+                color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                shape = RoundedCornerShape(50)
+            )
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+    )
 }
 
 @Composable
@@ -178,29 +184,22 @@ fun TransactionCard(tx: SimpleTransaction) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFF7F7F7), MaterialTheme.shapes.medium)
-            .padding(12.dp),
+            .background(Color(0xFFF7F7F7), RoundedCornerShape(12.dp))
+            .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column {
-            Text(tx.title, fontSize = 14.sp)
-            Text(tx.date, fontSize = 12.sp, color = Color.Gray)
+            Text(tx.title, style = MaterialTheme.typography.bodyLarge)
+            Text(tx.date, style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray))
         }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+        Column(horizontalAlignment = Alignment.End) {
             Text(
                 text = if (tx.savings > 0) "+ ${tx.savings} lv" else "- ${abs(tx.savings)} lv",
                 color = if (tx.savings > 0) Color(0xFF00C853) else Color.Red,
-                fontSize = 14.sp
+                style = MaterialTheme.typography.bodyLarge
             )
-            Text(
-                text = "${tx.amount} lv",
-                color = Color.DarkGray,
-                fontSize = 14.sp
-            )
+            Text("${tx.amount} lv", style = MaterialTheme.typography.bodySmall.copy(color = Color.DarkGray))
         }
     }
 }
