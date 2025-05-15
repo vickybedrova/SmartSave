@@ -15,7 +15,7 @@ public class Transaction {
 
     private String description;
     private double amount;
-    private String type; // e.g., "INCOME", "EXPENSE", "WITHDRAW", "INTEREST_PAYMENT"
+    private String type; // e.g., "INCOME", "WITHDRAW"
     private double savingsCalculated; // The part of 'amount' that went to savings (for INCOME/EXPENSE)
     private long timestamp; // Will be Long when retrieved from Firebase
     private String currency; // e.g., "EUR" - Assuming a default or fetched from profile
@@ -96,7 +96,7 @@ public class Transaction {
         // For INCOME/EXPENSE, show the gross amount.
         // For WITHDRAW/SAVINGS_DEPOSIT/INTEREST_PAYMENT, 'amount' is the direct savings impact.
         String prefix = "";
-        if (Objects.equals(type, "INCOME") || Objects.equals(type, "EXPENSE")) {
+        if (Objects.equals(type, "INCOME") || Objects.equals(type, "EXPENSE" ) || Objects.equals(type, "WITHDRAW")) {
             prefix = "Amount: ";
         }
         return String.format(Locale.US, "%s%.2f %s", prefix, amount, getCurrency());
