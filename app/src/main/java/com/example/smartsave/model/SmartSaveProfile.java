@@ -15,6 +15,12 @@ public class SmartSaveProfile {
     public SmartSaveProfile() {
     }
 
+    public SmartSaveProfile(double savingsPercentage, String startDate, double totalSaved) {
+        this.savingsPercentage = savingsPercentage;
+        this.startDate = startDate;
+        this.totalSaved = totalSaved;
+        // this.transactions = null; // Or initialize if needed, though not set here
+    }
     // Getters
     public double getSavingsPercentage() {
         return savingsPercentage;
