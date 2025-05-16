@@ -15,7 +15,7 @@ public class Transaction {
 
     private String description;
     private double amount;
-    private String type; // e.g., "INCOME", "EXPENSE", "WITHDRAW", "INTEREST_PAYMENT"
+    private String type; // e.g., "INCOME", "WITHDRAW"
     private double savingsCalculated; // The part of 'amount' that went to savings (for INCOME/EXPENSE)
     private long timestamp; // Will be Long when retrieved from Firebase
     private String currency; // e.g., "EUR" - Assuming a default or fetched from profile
@@ -94,12 +94,28 @@ public class Transaction {
     @Exclude
     public String getDisplayAmountForList() {
         // For INCOME/EXPENSE, show the gross amount.
-        // For WITHDRAW/SAVINGS_DEPOSIT/INTEREST_PAYMENT, 'amount' is the direct savings impact.
-        String prefix = "";
-        if (Objects.equals(type, "INCOME") || Objects.equals(type, "EXPENSE")) {
-            prefix = "Amount: ";
+        // For WITHDRAW, SAVINGS_DEPOSIT, INTEREST_PAYMENT, 'amount' IS the direct impact.
+        // We want to AVOID showing "Amount: X" if it's a direct savings impact type.
+        String typeUpper = (type != null) ? type.toUpperCase() : "";
+
+        switch (typeUpper) {
+            case "INCOME":
+            case "EXPENSE":
+                // For income/expense, 'amount' is the gross transaction value.
+                // 'savingsCalculated' is the portion that went to savings.
+                return String.format(Locale.US, "Amount: %.2f %s", amount, getCurrency());
+            case "WITHDRAW":
+            case "SAVINGS_DEPOSIT":
+            case "INTEREST_PAYMENT":
+                // For these types, 'amount' is the direct value affecting savings.
+                return ""; // Or: return String.format(Locale.US, "Value: %.2f %s", amount, getCurrency());
+            default:
+                // Fallback for unknown types, show the amount if present
+                if (amount != 0) {
+                    return String.format(Locale.US, "Amount: %.2f %s", amount, getCurrency());
+                }
+                return "";
         }
-        return String.format(Locale.US, "%s%.2f %s", prefix, amount, getCurrency());
     }
 
     // Optional: toString, equals, hashCode for debugging or use in collections

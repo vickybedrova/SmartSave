@@ -1,6 +1,5 @@
-package com.example.smartsave
+package com.example.smartsave.ui.activity
 
-import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,18 +8,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.smartsave.R
+import com.example.smartsave.ui.navigation.Screen
 
 @Composable
-fun LandingScreen() {
+fun LandingScreen(navController: NavController) {
     val colors = MaterialTheme.colorScheme
-    val context = LocalContext.current
+    val typography = MaterialTheme.typography
 
     Box(
         modifier = Modifier
@@ -39,12 +40,12 @@ fun LandingScreen() {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = stringResource(R.string.landing_page_title),
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = typography.headlineLarge,
                     textAlign = TextAlign.Center
                 )
                 Text(
                     text = stringResource(R.string.smartsave),
-                    style = MaterialTheme.typography.headlineLarge,
+                    style = typography.headlineLarge,
                     textAlign = TextAlign.Center,
                     color = colors.primary
                 )
@@ -56,9 +57,9 @@ fun LandingScreen() {
                 ) {
                     Text(
                         text = "by",
-                        style = MaterialTheme.typography.bodyLarge.copy(
+                        style = typography.bodyLarge.copy(
                             fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = colors.onBackground
                         )
                     )
 
@@ -73,10 +74,8 @@ fun LandingScreen() {
             }
 
             Text(
-                text = stringResource(id = R.string.landing_page_message),
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontSize = 18.sp
-                ),
+                text = stringResource(R.string.landing_page_message),
+                style = typography.bodyLarge.copy(fontSize = 18.sp),
                 color = colors.onBackground,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -84,10 +83,11 @@ fun LandingScreen() {
 
             Button(
                 onClick = {
-                    val intent = Intent(context, WelcomeActivity::class.java)
-                    context.startActivity(intent)
+                    navController.navigate(Screen.Welcome.route) {
+                        popUpTo(Screen.Welcome.route) { inclusive = true }
+                    }
                 },
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(32.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -95,7 +95,7 @@ fun LandingScreen() {
             ) {
                 Text(
                     text = stringResource(R.string.landing_button),
-                    style = MaterialTheme.typography.labelLarge.copy(
+                    style = typography.labelLarge.copy(
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     ),

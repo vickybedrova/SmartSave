@@ -1,6 +1,5 @@
-package com.example.smartsave
+package com.example.smartsave.ui.activity.welcome
 
-import android.content.Intent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,13 +13,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.smartsave.R
+import com.example.smartsave.ui.navigation.Screen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -34,7 +35,7 @@ data class WelcomeCarouselSlide(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun WelcomeScreen() {
+fun WelcomeScreen(navController: NavController) {
     val slides = listOf(
         WelcomeCarouselSlide(
             title = stringResource(R.string.welcome_carousel_first_title),
@@ -71,25 +72,14 @@ fun WelcomeScreen() {
     )
 
     val pagerState = rememberPagerState(pageCount = { slides.size })
-
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val isUserScrolling by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         while (true) {
             delay(4000L)
-
-            if (!pagerState.isScrollInProgress && !isUserScrolling) {
-                val nextPage = if (pagerState.currentPage < slides.lastIndex) {
-                    pagerState.currentPage + 1
-                } else {
-                    0
-                }
-
-                coroutineScope.launch {
-                    pagerState.animateScrollToPage(nextPage)
-                }
+            if (!pagerState.isScrollInProgress) {
+                val nextPage = if (pagerState.currentPage < slides.lastIndex) pagerState.currentPage + 1 else 0
+                coroutineScope.launch { pagerState.animateScrollToPage(nextPage) }
             }
         }
     }
@@ -130,10 +120,7 @@ fun WelcomeScreen() {
         }
 
         Button(
-            onClick = {
-                val intent = Intent(context, LoginActivity::class.java)
-                context.startActivity(intent)
-            },
+            onClick = { navController.navigate(Screen.Login.route) },
             shape = RoundedCornerShape(32.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             modifier = Modifier
@@ -147,8 +134,9 @@ fun WelcomeScreen() {
                     fontWeight = FontWeight.Bold
                 ),
                 color = MaterialTheme.colorScheme.onPrimary
-)
+            )
         }
+
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
