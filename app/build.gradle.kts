@@ -52,7 +52,15 @@ android {
 
 dependencies {
 
+    implementation("com.squareup.okhttp3:okhttp:4.9.3") // Use a version compatible with your Retrofit
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
     implementation("com.mypos:mypossmartsdk:1.0.5")
+
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    implementation ("com.squareup.okhttp3:okhttp:4.9.3")
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.9.3")
 
     implementation("com.google.firebase:firebase-auth:22.3.1")
     implementation("com.google.firebase:firebase-database:20.3.1")
