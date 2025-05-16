@@ -27,6 +27,7 @@ import com.google.firebase.database.ValueEventListener
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt // Import for rounding
 
 private const val TAG_SETUP_SCREEN = "SmartSaveSetupScreen"
 
@@ -42,71 +43,61 @@ fun SmartSaveSetupScreen(navController: NavController) {
     }
     val currentUser = auth.currentUser
 
-    // State for the UI
-    var percentage by remember { mutableStateOf(5f) } // Slider value (1f to 15f)
-    var isLoading by remember { mutableStateOf(true) } // For fetching existing data
-    var isSaving by remember { mutableStateOf(false) } // For save operation
-
-    // State to hold existing profile data if found
+    var percentage by remember { mutableStateOf(5f) }
+    var isLoading by remember { mutableStateOf(true) }
+    var isSaving by remember { mutableStateOf(false) }
     var existingProfile by remember { mutableStateOf<SmartSaveProfile?>(null) }
     var initialProfileFetched by remember { mutableStateOf(false) }
 
-    // Fetch existing profile when the screen loads for the current user
     LaunchedEffect(key1 = currentUser) {
-        if (currentUser == null) {
+        if (currentUser == null) { /* ... navigation to login ... */
             Log.w(TAG_SETUP_SCREEN, "No user, navigating to login.")
             navController.navigate(Screen.Login.route) {
                 popUpTo(navController.graph.startDestinationId) { inclusive = true }
             }
             return@LaunchedEffect
         }
-
         isLoading = true
         val userId = currentUser.uid
         val profileRef = database.reference.child("smartSaveProfile").child(userId)
-
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     val profile = snapshot.getValue(SmartSaveProfile::class.java)
                     existingProfile = profile
                     profile?.let {
-                        percentage = it.savingsPercentage.toFloat() // Update slider
-                        Log.d(TAG_SETUP_SCREEN, "Existing profile loaded: $it")
+                        val loadedPercentage = it.savingsPercentage.toFloat()
+                        Log.d(TAG_SETUP_SCREEN, "Profile loaded. DB savingsPercentage: ${it.savingsPercentage}, converted toFloat: $loadedPercentage")
+                        percentage = loadedPercentage // Update slider
                     }
-                } else {
+                } else { /* ... no existing profile ... */
                     Log.d(TAG_SETUP_SCREEN, "No existing profile found for user $userId.")
-                    existingProfile = null // Ensure it's null if no profile
+                    existingProfile = null
                 }
                 isLoading = false
                 initialProfileFetched = true
             }
-
-            override fun onCancelled(error: DatabaseError) {
+            override fun onCancelled(error: DatabaseError) { /* ... error handling ... */
                 Log.e(TAG_SETUP_SCREEN, "Error fetching profile: ${error.message}", error.toException())
                 Toast.makeText(context, "Error fetching profile: ${error.message}", Toast.LENGTH_LONG).show()
                 isLoading = false
-                initialProfileFetched = true // Mark as fetched even on error to unblock UI
+                initialProfileFetched = true
             }
         }
-        profileRef.addListenerForSingleValueEvent(listener) // Use single event to not keep listening
+        profileRef.addListenerForSingleValueEvent(listener)
     }
 
-
-    if (isLoading && !initialProfileFetched) { // Show loading only on initial fetch
+    if (isLoading && !initialProfileFetched) { /* ... Loading UI ... */
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
     } else {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 32.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 32.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // ... (Your existing UI for title, description, slider, terms - no changes needed here) ...
-                Text(
+                Text( /* ... Title ... */
                     text = buildAnnotatedString {
                         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                             append(stringResource(R.string.customize_your))
@@ -119,18 +110,14 @@ fun SmartSaveSetupScreen(navController: NavController) {
                     style = typography.headlineSmall.copy(lineHeight = 32.sp),
                     textAlign = TextAlign.Center
                 )
-
                 Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
+                Text( /* ... Description ... */
                     text = stringResource(R.string.smart_save_description),
                     style = typography.bodyMedium.copy(color = colors.onBackground.copy(alpha = 0.75f)),
                     textAlign = TextAlign.Center
                 )
-
                 Spacer(modifier = Modifier.height(32.dp))
-
-                Row(
+                Row( /* ... Percentage Label ... */
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -139,35 +126,39 @@ fun SmartSaveSetupScreen(navController: NavController) {
                         text = stringResource(R.string.percentage_to_save),
                         style = typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
                     )
+                    // --- MODIFIED DISPLAY TO SHOW FLOAT FOR DEBUG ---
                     Text(
-                        text = "${percentage.toInt()}%",
+                        // text = "${percentage.toInt()}%", // Original display
+                        text = "${percentage.roundToInt()}% ", // Display rounded and raw float
                         style = typography.bodyLarge
                     )
+                    // --- END MODIFIED DISPLAY ---
                 }
 
                 Slider(
                     value = percentage,
-                    onValueChange = { percentage = it },
+                    onValueChange = { newValue ->
+                        Log.d(TAG_SETUP_SCREEN, "Slider onValueChange - raw newValue from slider: $newValue")
+                        // Option 1: Direct assignment (current behavior)
+                        percentage = newValue
+                        // Option 2: Force rounding (if slider produces tiny decimals despite steps)
+                        // percentage = newValue.roundToInt().toFloat()
+                        Log.d(TAG_SETUP_SCREEN, "Slider onValueChange - 'percentage' state updated to: $percentage")
+                    },
                     valueRange = 1f..15f,
-                    steps = 13, // (15-1) = 14 segments, 13 steps
+                    steps = 13, // This should give 14 discrete values: 1, 2, ..., 15
                     modifier = Modifier.fillMaxWidth(),
-                    colors = SliderDefaults.colors(
-                        thumbColor = colors.primary,
-                        activeTrackColor = colors.primary
-                    )
+                    colors = SliderDefaults.colors(thumbColor = colors.primary, activeTrackColor = colors.primary)
                 )
-
-                Row(
+                Row( /* ... Min/Max Labels ... */
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text("1%", style = typography.bodySmall)
                     Text("15%", style = typography.bodySmall)
                 }
-
                 Spacer(modifier = Modifier.height(24.dp))
-
-                val annotatedText = buildAnnotatedString {
+                val annotatedText = buildAnnotatedString { /* ... Terms ... */
                     append(stringResource(R.string.agree_to_terms_prefix))
                     append(" ")
                     pushStringAnnotation("terms", "https://example.com/terms")
@@ -176,7 +167,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
                     }
                     pop()
                     append(" ")
-                    append(stringResource(R.string.and_conjunction)) // Assuming you renamed "and"
+                    append(stringResource(R.string.and_conjunction))
                     append(" ")
                     pushStringAnnotation("privacy", "https://example.com/privacy")
                     withStyle(SpanStyle(color = colors.primary)) {
@@ -185,10 +176,9 @@ fun SmartSaveSetupScreen(navController: NavController) {
                     pop()
                     append(".")
                 }
-
-                ClickableText(
+                ClickableText( /* ... Clickable Terms ... */
                     text = annotatedText,
-                    onClick = { offset -> /* ... your existing click logic ... */
+                    onClick = { offset ->
                         annotatedText.getStringAnnotations(tag = "terms", start = offset, end = offset)
                             .firstOrNull()?.let { annotation ->
                                 Toast.makeText(context, "Open Terms: ${annotation.item}", Toast.LENGTH_SHORT).show()
@@ -204,50 +194,43 @@ fun SmartSaveSetupScreen(navController: NavController) {
             }
 
             Button(
-                // In SmartSaveSetupScreen.kt, inside Button onClick:
-
                 onClick = {
-                    if (currentUser == null) {
+                    if (currentUser == null) { /* ... user null check ... */
                         Toast.makeText(context, "Error: User not logged in.", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
                     isSaving = true
                     val userId = currentUser.uid
                     val profileRef = database.reference.child("smartSaveProfile").child(userId)
-                    val newSavingsPercentage = percentage.toDouble()
+
+                    // --- ADD LOGGING BEFORE SAVING ---
+                    val percentageToSaveFloat = percentage // Current state (Float)
+                    val percentageToSaveInt = percentage.roundToInt() // What you intend to save as whole number
+                    val percentageToSaveDouble = percentageToSaveInt.toDouble() // The value actually being saved as Double
+
+                    Log.d(TAG_SETUP_SCREEN, "Save Clicked: Raw 'percentage' state (Float): $percentageToSaveFloat")
+                    Log.d(TAG_SETUP_SCREEN, "Save Clicked: Rounded 'percentage' state (Int): $percentageToSaveInt")
+                    Log.d(TAG_SETUP_SCREEN, "Save Clicked: Value being saved to Firebase (Double): $percentageToSaveDouble")
+                    // --- END LOGGING ---
+
+                    val newSavingsPercentage = percentageToSaveDouble // Use the rounded integer then converted to double
 
                     if (existingProfile != null) {
-                        // --- EDIT MODE: Update only the savingsPercentage ---
-                        Log.d(TAG_SETUP_SCREEN, "Updating existing profile. New percentage: $newSavingsPercentage for user $userId")
+                        Log.d(TAG_SETUP_SCREEN, "Updating existing profile. Saving percentage: $newSavingsPercentage for user $userId")
                         val updates = HashMap<String, Any>()
-                        updates["savingsPercentage"] = newSavingsPercentage
-                        // We don't update startDate or totalSaved here, they are preserved.
-                        // The 'transactions' node is also not touched by updateChildren at this path.
-
+                        updates["savingsPercentage"] = newSavingsPercentage // Use the potentially rounded value
                         profileRef.updateChildren(updates)
-                            .addOnSuccessListener {
-                                Log.d(TAG_SETUP_SCREEN, "SmartSave percentage updated successfully for user $userId")
+                            .addOnSuccessListener { /* ... success navigation ... */
+                                Log.d(TAG_SETUP_SCREEN, "SmartSave percentage updated successfully to $newSavingsPercentage")
                                 Toast.makeText(context, "Savings percentage updated!", Toast.LENGTH_SHORT).show()
                                 isSaving = false
-
-                                // --- Ensure Dashboard refreshes ---
-                                // Option 1: Just navigate. Dashboard's listeners should pick up the change.
                                 navController.navigate(Screen.Dashboard.route) {
-                                    // If coming from Dashboard (edit mode), pop only Setup
-                                    // If first time setup, pop up to Login
-                                    // This needs a way to distinguish edit vs create for navigation.
-                                    // For now, let's assume a consistent pop for simplicity,
-                                    // or handle this with a passed argument to SmartSaveSetupScreen.
-                                    popUpTo(Screen.Login.route) { inclusive = true } // Or better, popUpTo(Screen.Setup.route){ inclusive = true } if truly an edit
+                                    popUpTo(Screen.Login.route) { inclusive = true }
                                 }
-
-                                // Option 2 (More proactive, if needed, but usually not):
-                                // You could pass a lambda from Dashboard to Setup to trigger a manual refresh,
-                                // or use a shared ViewModel. But Firebase listeners usually suffice.
                             }
-                            .addOnFailureListener { e ->
-                                Log.e(TAG_SETUP_SCREEN, "Failed to update SmartSave percentage for user $userId", e)
-                                Toast.makeText(context, "Failed to update settings: ${e.message}", Toast.LENGTH_LONG).show()
+                            .addOnFailureListener { /* ... failure ... */
+                                Log.e(TAG_SETUP_SCREEN, "Failed to update SmartSave percentage for user $userId", it)
+                                Toast.makeText(context, "Failed to update settings: ${it.message}", Toast.LENGTH_LONG).show()
                                 isSaving = false
                             }
                     } else {
@@ -258,43 +241,38 @@ fun SmartSaveSetupScreen(navController: NavController) {
                         val newStartDate = currentDate
                         val newTotalSaved = 0.0 // Initial total saved
 
-                        // Using your Java class constructor for SmartSaveProfile
                         val profileToSave = SmartSaveProfile(
                             newSavingsPercentage,
                             newStartDate,
-                            newTotalSaved
+                            newTotalSaved,
+                            true // <<< ENSURE isActive is set, typically to true
                         )
-                        // This will create the profile node with only these fields.
-                        // The 'transactions' node will be added later under this profileRef.
                         profileRef.setValue(profileToSave)
-                            .addOnSuccessListener {
-                                Log.d(TAG_SETUP_SCREEN, "SmartSave profile created successfully for user $userId")
+                            .addOnSuccessListener { /* ... success navigation ... */
+                                Log.d(TAG_SETUP_SCREEN, "SmartSave profile created successfully with percentage $newSavingsPercentage")
                                 Toast.makeText(context, "SmartSave settings saved!", Toast.LENGTH_SHORT).show()
                                 isSaving = false
                                 navController.navigate(Screen.Dashboard.route) {
                                     popUpTo(Screen.Login.route) { inclusive = true }
                                 }
                             }
-                            .addOnFailureListener { e ->
-                                Log.e(TAG_SETUP_SCREEN, "Failed to create SmartSave profile for user $userId", e)
-                                Toast.makeText(context, "Failed to save settings: ${e.message}", Toast.LENGTH_LONG).show()
+                            .addOnFailureListener { /* ... failure ... */
+                                Log.e(TAG_SETUP_SCREEN, "Failed to create SmartSave profile for user $userId", it)
+                                Toast.makeText(context, "Failed to save settings: ${it.message}", Toast.LENGTH_LONG).show()
                                 isSaving = false
                             }
                     }
                 },
-// ... (rest of Button parameters)
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(32.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
-                enabled = !isSaving && initialProfileFetched // Enable button only if not saving and initial data load attempt is done
-            ) {
+                enabled = !isSaving && initialProfileFetched
+            ) { /* ... Button Text ... */
                 if (isSaving) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
                 } else {
                     Text(
-                        text = stringResource(R.string.setup_smartsave), // Or "Save Changes" if existingProfile != null
+                        text = stringResource(R.string.setup_smartsave),
                         style = typography.labelLarge.copy(
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,

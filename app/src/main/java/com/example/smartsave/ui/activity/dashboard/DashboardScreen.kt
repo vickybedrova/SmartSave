@@ -1,7 +1,9 @@
 package com.example.smartsave.ui.activity.dashboard
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.example.smartsave.DashboardContent
 import com.example.smartsave.model.Transaction
@@ -16,23 +18,20 @@ import java.util.TimeZone
 
 private const val TAG_DASHBOARD_SCREEN = "DashboardScreenLogic"
 
-// --- NEW: Enum for Filter Types ---
 enum class TransactionFilter {
     ALL, TODAY, THIS_WEEK
 }
-// --- END NEW ---
 
 @Composable
 fun DashboardScreen(navController: NavController) {
+    val context = LocalContext.current
     val auth = remember { FirebaseAuth.getInstance() }
     val database = remember {
         FirebaseDatabase.getInstance("https://smartsave-e0e7b-default-rtdb.europe-west1.firebasedatabase.app/")
     }
     var currentAuthUser by remember { mutableStateOf(auth.currentUser) }
 
-    // --- NEW: State for the selected transaction filter ---
     var selectedTransactionFilter by remember { mutableStateOf(TransactionFilter.ALL) }
-    // --- END NEW ---
 
     // States for data
     var transactionsList by remember { mutableStateOf<List<Transaction>>(emptyList()) }
@@ -43,6 +42,8 @@ fun DashboardScreen(navController: NavController) {
     var earnedThisMonthCurrency by remember { mutableStateOf("EUR") }
     var progressThisMonth by remember { mutableStateOf(0.0) }
     var progressThisMonthCurrency by remember { mutableStateOf("EUR") }
+    var isSmartSaveActive by remember { mutableStateOf(true) } // Default, will be fetched
+
 
 
     // Granular Loading States
@@ -51,6 +52,8 @@ fun DashboardScreen(navController: NavController) {
     // ... (isLoadingEarnedThisMonth, isLoadingProgressThisMonth remain the same) ...
     var isLoadingEarnedThisMonth by remember { mutableStateOf(true) }
     var isLoadingProgressThisMonth by remember { mutableStateOf(true) }
+    var isTogglingActiveState by remember { mutableStateOf(false) }
+
 
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -266,36 +269,60 @@ fun DashboardScreen(navController: NavController) {
     }
 
     DashboardContent(
+        // ... (other existing parameters: transactions, totalSavings, etc.)
         transactions = transactionsList,
         totalSavings = totalSavings,
         savingsPercentage = savingsPercentage,
         earnedThisMonthValue = String.format(Locale.getDefault(), "%.2f %s", earnedThisMonth, earnedThisMonthCurrency),
         progressThisMonthValue = String.format(Locale.getDefault(), "%.2f %s", progressThisMonth, progressThisMonthCurrency),
-        // --- NEW: Pass filter state and handler ---
         selectedFilter = selectedTransactionFilter,
-        onFilterSelected = { newFilter ->
-            Log.d(TAG_DASHBOARD_SCREEN, "Filter changed to: $newFilter")
-            selectedTransactionFilter = newFilter
-            // The DisposableEffect for transactionsList will re-run due to this state change
+        onFilterSelected = { newFilter -> selectedTransactionFilter = newFilter },
+
+        // --- NEW: Pass active state and toggle handler ---
+        isSmartSaveActive = isSmartSaveActive,
+        onToggleActiveState = {
+            if (currentAuthUser == null || isTogglingActiveState) {
+                Log.w(TAG_DASHBOARD_SCREEN, "Toggle attempt ignored: no user or already toggling.")
+                return@DashboardContent
+            }
+            val userId = currentAuthUser!!.uid
+            val profileIsActiveRef = database.reference.child("smartSaveProfile").child(userId).child("isActive")
+
+            // --- Calculate new state based on current state ---
+            val currentLocalState = isSmartSaveActive
+            val newActiveStateToSetInFirebase = !currentLocalState
+
+            Log.d(TAG_DASHBOARD_SCREEN, "Attempting to toggle SmartSave from $currentLocalState to $newActiveStateToSetInFirebase for user $userId")
+            isTogglingActiveState = true // Set loading state now
+
+            // --- OPTIMISTICALLY UPDATE LOCAL STATE for faster UI response ---
+            isSmartSaveActive = newActiveStateToSetInFirebase
+            // --- END OPTIMISTIC UPDATE ---
+
+            profileIsActiveRef.setValue(newActiveStateToSetInFirebase)
+                .addOnSuccessListener {
+                    Log.i(TAG_DASHBOARD_SCREEN, "Firebase: SmartSave active state successfully set to $newActiveStateToSetInFirebase for $userId")
+                    // Local state is already optimistically updated.
+                    // The listener will eventually get this same value and confirm it.
+                    Toast.makeText(context, "SmartSave ${if (newActiveStateToSetInFirebase) "Resumed" else "Paused"}", Toast.LENGTH_SHORT).show()
+                    isTogglingActiveState = false
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG_DASHBOARD_SCREEN, "Firebase: Failed to update SmartSave active state for $userId", e)
+                    Toast.makeText(context, "Failed to update status: ${e.message}", Toast.LENGTH_SHORT).show()
+                    // --- REVERT OPTIMISTIC UPDATE ON FAILURE ---
+                    isSmartSaveActive = currentLocalState // Revert to the state before the toggle attempt
+                    // --- END REVERT ---
+                    isTogglingActiveState = false
+                }
         },
         // --- END NEW ---
+
         isLoading = isLoadingOverall,
         errorMessage = errorMessage,
-        // ... (onLogout, onWithdrawClicked, etc. remain the same) ...
-        onLogout = {
-            Log.e(TAG_DASHBOARD_SCREEN, "!!! LOGOUT BUTTON CLICKED !!!")
-            Log.i(TAG_DASHBOARD_SCREEN, "Logout initiated. Calling auth.signOut().")
-            auth.signOut()
-        },
-        onWithdrawClicked = {
-            Log.d(TAG_DASHBOARD_SCREEN, "Withdraw clicked, navigating to Withdraw screen.")
-            navController.navigate(Screen.Withdraw.route)
-        },
-        onAdjustClicked = {
-            navController.navigate(Screen.Setup.route)
-        },
-        onAnalyticsClicked = {
-            navController.navigate(Screen.Analytics.route)
-        }
+        onLogout = { auth.signOut() },
+        onWithdrawClicked = { navController.navigate(Screen.Withdraw.route) },
+        onAdjustClicked = { navController.navigate(Screen.Setup.route) },
+        onAnalyticsClicked = { navController.navigate(Screen.Analytics.route) }
     )
 }

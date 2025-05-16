@@ -1,32 +1,27 @@
-package com.example.smartsave // Ensure this package is correct
+package com.example.smartsave
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable // Import clickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items // <<< ENSURE THIS IMPORT IS CORRECT
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
-// Add other necessary Icons imports if ActionButton uses them e.g.
-// import androidx.compose.material.icons.filled.Create
-// import androidx.compose.material.icons.filled.Close
-// import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter // For ActionButton if using Painter
-import androidx.compose.ui.graphics.vector.ImageVector // For ActionButton if using ImageVector
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.smartsave.model.Transaction
-import com.example.smartsave.ui.activity.dashboard.TransactionFilter // Import your enum
+import com.example.smartsave.ui.activity.dashboard.TransactionFilter
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,6 +34,8 @@ fun DashboardContent(
     progressThisMonthValue: String,
     selectedFilter: TransactionFilter,
     onFilterSelected: (TransactionFilter) -> Unit,
+    isSmartSaveActive: Boolean,
+    onToggleActiveState: () -> Unit,
     isLoading: Boolean,
     errorMessage: String?,
     onLogout: () -> Unit,
@@ -81,9 +78,30 @@ fun DashboardContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ActionButton("Adjust", painterResource(id = R.drawable.baseline_percent_24), onAdjustClicked)
-            ActionButton("Pause", painterResource(id = R.drawable.baseline_pause_24)) { /* TODO */ }
-            ActionButton("Analytics", painterResource(id = R.drawable.baseline_bar_chart_24), onAnalyticsClicked)
+            ActionButton(
+                text = "Adjust",
+                iconPainter = painterResource(id = R.drawable.baseline_percent_24), // Assuming Painter
+                onClick = onAdjustClicked
+            )
+
+            // --- Pause/Start Button ---
+            val pauseStartText = if (isSmartSaveActive) "Pause" else "Start" // Or "Start"
+            val pauseStartIconPainter = if (isSmartSaveActive)
+                painterResource(id = R.drawable.baseline_pause_24)
+            else
+                painterResource(id = R.drawable.baseline_play_arrow_24) // Add this drawable
+            ActionButton(
+                text = pauseStartText,
+                iconPainter = pauseStartIconPainter, // Pass the Painter
+                onClick = onToggleActiveState
+            )
+            // --- End Pause/Start Button ---
+
+            ActionButton(
+                text = "Analytics",
+                iconPainter = painterResource(id = R.drawable.baseline_bar_chart_24),
+                onClick = onAnalyticsClicked
+            )
         }
         Spacer(modifier = Modifier.height(16.dp))
 
