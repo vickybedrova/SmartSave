@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.example.smartsave.model.Transaction
 import com.example.smartsave.ui.activity.dashboard.TransactionFilter
 import java.util.Locale
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,16 +54,30 @@ fun DashboardContent(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onLogout) {
+            TextButton(
+                onClick = onLogout,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
                 Icon(
-                    imageVector = Icons.Default.ExitToApp, // Make sure Icons.Default.ExitToApp is imported
+                    imageVector = Icons.Default.ExitToApp,
                     contentDescription = "Logout",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Logout",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
+
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
 
         Text(
             "SMARTSAVE OVERVIEW",

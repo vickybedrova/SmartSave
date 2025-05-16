@@ -7,7 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -20,24 +20,15 @@ fun AnalyticsScreen(navController: NavController) {
     val colors = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
 
+    var selectedMonth by remember { mutableStateOf("May") }
+    var selectedYear by remember { mutableStateOf("2025") }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.background)
             .padding(24.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            IconButton(onClick = { }) {
-                Icon(
-                    imageVector = Icons.Default.ExitToApp,
-                    contentDescription = "Logout",
-                    tint = colors.onBackground.copy(alpha = 0.6f)
-                )
-            }
-        }
 
         Text(
             text = "ANALYTICS",
@@ -55,13 +46,18 @@ fun AnalyticsScreen(navController: NavController) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.onBackground)
-                }
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_arrow_circle_left_24),
+                        contentDescription = "Return"
+                    )                }
                 Text("SmartSave", style = typography.titleSmall)
             }
 
             IconButton(onClick = { /* Handle download */ }) {
-                Icon(painterResource(id = R.drawable.baseline_download_24), contentDescription = "Download")
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_download_24),
+                    contentDescription = "Download"
+                )
             }
         }
 
@@ -82,13 +78,12 @@ fun AnalyticsScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
-            Button(
-                onClick = { /* Open calendar */ },
-                shape = RoundedCornerShape(32.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
-            ) {
-                Icon(Icons.Default.DateRange, contentDescription = "Calendar", tint = colors.onPrimary)
-            }
+            MonthYearSelector(
+                selectedMonth = selectedMonth,
+                selectedYear = selectedYear,
+                onMonthSelected = { selectedMonth = it },
+                onYearSelected = { selectedYear = it }
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -117,6 +112,74 @@ fun AnalyticsCard(value: String, label: String) {
         ) {
             Text(text = value, style = typography.bodyLarge.copy(color = colors.onBackground))
             Text(text = label, style = typography.bodySmall.copy(color = colors.onBackground.copy(alpha = 0.6f)))
+        }
+    }
+}
+
+@Composable
+fun MonthYearSelector(
+    selectedMonth: String,
+    selectedYear: String,
+    onMonthSelected: (String) -> Unit,
+    onYearSelected: (String) -> Unit
+) {
+    val months = listOf(
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    )
+    val years = listOf("2025", "2026")
+
+    var isMonthExpanded by remember { mutableStateOf(false) }
+    var isYearExpanded by remember { mutableStateOf(false) }
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Month Dropdown
+        Box {
+            OutlinedButton(onClick = { isMonthExpanded = true }) {
+                Text(selectedMonth)
+                Icon(Icons.Default.ArrowDropDown, contentDescription = "Select Month")
+            }
+            DropdownMenu(
+                expanded = isMonthExpanded,
+                onDismissRequest = { isMonthExpanded = false },
+                modifier = Modifier.heightIn(max = 300.dp) // this allows internal scrolling
+            ) {
+                months.forEach { month ->
+                    DropdownMenuItem(
+                        text = { Text(month) },
+                        onClick = {
+                            onMonthSelected(month)
+                            isMonthExpanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        // Year Dropdown
+        Box {
+            OutlinedButton(onClick = { isYearExpanded = true }) {
+                Text(selectedYear)
+                Icon(Icons.Default.ArrowDropDown, contentDescription = "Select Year")
+            }
+            DropdownMenu(
+                expanded = isYearExpanded,
+                onDismissRequest = { isYearExpanded = false },
+                modifier = Modifier.heightIn(max = 200.dp)
+            ) {
+                years.forEach { year ->
+                    DropdownMenuItem(
+                        text = { Text(year) },
+                        onClick = {
+                            onYearSelected(year)
+                            isYearExpanded = false
+                        }
+                    )
+                }
+            }
         }
     }
 }

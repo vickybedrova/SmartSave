@@ -12,10 +12,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.smartsave.R
 import com.example.smartsave.ui.theme.greyFieldBackground
 
 @Composable
@@ -33,8 +35,10 @@ fun WithdrawScreen(navController: NavController) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = colors.onBackground)
-            }
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_arrow_circle_left_24),
+                    contentDescription = "Return"
+                )}
             Text(
                 text = "SmartSave",
                 style = typography.titleSmall.copy(fontSize = 16.sp),
@@ -51,12 +55,6 @@ fun WithdrawScreen(navController: NavController) {
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
-        Text(
-            text = "Saving plan 3%",
-            style = typography.bodySmall,
-            color = colors.onBackground.copy(alpha = 0.6f),
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
 
         Spacer(modifier = Modifier.height(24.dp))
 
