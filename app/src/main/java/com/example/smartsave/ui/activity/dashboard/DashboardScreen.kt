@@ -152,43 +152,46 @@ fun DashboardScreen(navController: NavController) {
 
         // DisposableEffect for "Earned this month"
         DisposableEffect(key1 = userId) {
-            Log.d(TAG_DASHBOARD_SCREEN, "DisposableEffect (EarnedMonth): Setting up for user $userId")
+            Log.d(TAG_DASHBOARD_SCREEN, "DisposableEffect: Triggering 'Earned this month' calculation for user $userId")
             isLoadingEarnedThisMonth = true
             SavingsCalculator.calculateInterestEarnedLastMonth(object : SavingsCalculator.InterestCalculationCallback {
-                override fun onSuccess(totalInterest: Double, currency: String) { /* ... update states, isLoadingEarnedThisMonth = false ... */
+                override fun onSuccess(totalInterest: Double, currency: String) {
                     Log.i(TAG_DASHBOARD_SCREEN, "SUCCESS 'Earned this month': $totalInterest $currency (User: $userId)")
                     earnedThisMonth = totalInterest
                     earnedThisMonthCurrency = currency
                     isLoadingEarnedThisMonth = false
                 }
-                override fun onError(errorMsg: String) { /* ... handle error, isLoadingEarnedThisMonth = false ... */
+                override fun onError(errorMsg: String) {
                     Log.e(TAG_DASHBOARD_SCREEN, "ERROR 'Earned this month': $errorMsg (User: $userId)")
                     errorMessage = (errorMessage ?: "") + "\nMonthly earnings error."
                     isLoadingEarnedThisMonth = false
                 }
             })
-            onDispose { /* No listener removal needed for single event calculator method */ }
+            onDispose { /* No listener to remove from single event in calculator */ }
         }
 
         // DisposableEffect for "Progress this month"
         DisposableEffect(key1 = userId) {
-            Log.d(TAG_DASHBOARD_SCREEN, "DisposableEffect (ProgressMonth): Setting up for user $userId")
-            isLoadingProgressThisMonth = true
+            Log.d(TAG_DASHBOARD_SCREEN, "DisposableEffect: Triggering 'Progress this month' calculation for user $userId")
+            isLoadingProgressThisMonth = true // Set loading true
+
             SavingsCalculator.calculateProgressThisMonth(object : SavingsCalculator.MonthlyProgressCallback {
-                override fun onSuccess(totalProgress: Double, currency: String) { /* ... update states, isLoadingProgressThisMonth = false ... */
+                override fun onSuccess(totalProgress: Double, currency: String) {
                     Log.i(TAG_DASHBOARD_SCREEN, "SUCCESS 'Progress this month': $totalProgress $currency (User: $userId)")
                     progressThisMonth = totalProgress
                     progressThisMonthCurrency = currency
                     isLoadingProgressThisMonth = false
                 }
-                override fun onError(errorMsg: String) { /* ... handle error, isLoadingProgressThisMonth = false ... */
+
+                override fun onError(errorMsg: String) {
                     Log.e(TAG_DASHBOARD_SCREEN, "ERROR 'Progress this month': $errorMsg (User: $userId)")
                     errorMessage = (errorMessage ?: "") + "\nMonthly progress error."
                     isLoadingProgressThisMonth = false
                 }
             })
-            onDispose { /* No listener removal needed for single event calculator method */ }
+            onDispose { /* No listener to remove from single event in calculator */ }
         }
+
     }
 
 
