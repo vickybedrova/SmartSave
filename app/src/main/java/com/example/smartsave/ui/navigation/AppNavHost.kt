@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.smartsave.ui.activity.AnalyticsScreen
+import com.example.smartsave.ui.activity.WithdrawScreen
 import com.example.smartsave.ui.activity.dashboard.DashboardScreen
 import com.example.smartsave.ui.activity.login.LoginScreen
 import com.example.smartsave.ui.activity.smartSaveSetup.SmartSaveSetupScreen
@@ -20,6 +21,6 @@ fun AppNavHost(startDestination: String = Screen.Welcome.route) {
         composable(Screen.Dashboard.route) { DashboardScreen(navController) }
         composable(Screen.Setup.route) { SmartSaveSetupScreen(navController) }
         composable(Screen.Analytics.route){ AnalyticsScreen(navController) }
-        composable(Screen.Withdraw.route){ AnalyticsScreen(navController) }
+        composable(Screen.Withdraw.route){ WithdrawScreen(navController) }
     }
 }

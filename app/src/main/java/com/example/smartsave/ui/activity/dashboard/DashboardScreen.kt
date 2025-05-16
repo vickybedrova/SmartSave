@@ -208,6 +208,14 @@ fun DashboardScreen(navController: NavController) {
         onWithdrawClicked = {
             Log.d(TAG_DASHBOARD_SCREEN, "Withdraw clicked, navigating to Withdraw screen.")
             navController.navigate(Screen.Withdraw.route)
+        },
+        onAdjustClicked = {
+            navController.navigate(Screen.Setup.route)
+        },
+        onAnalyticsClicked = {
+            navController.navigate(Screen.Analytics.route)
         }
+
+
     )
 }

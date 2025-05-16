@@ -10,8 +10,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.smartsave.R
 
 @Composable
 fun AnalyticsScreen(navController: NavController) {
@@ -59,7 +61,7 @@ fun AnalyticsScreen(navController: NavController) {
             }
 
             IconButton(onClick = { /* Handle download */ }) {
-                Icon(Icons.Default.MailOutline, contentDescription = "Download", tint = colors.onBackground.copy(alpha = 0.6f))
+                Icon(painterResource(id = R.drawable.baseline_download_24), contentDescription = "Download")
             }
         }
 

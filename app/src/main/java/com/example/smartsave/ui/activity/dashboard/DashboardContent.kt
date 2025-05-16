@@ -18,19 +18,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Refresh
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -49,7 +47,9 @@ fun DashboardContent(
     isLoading: Boolean,
     errorMessage: String?,
     onLogout: () -> Unit,
-    onWithdrawClicked: () -> Unit
+    onWithdrawClicked: () -> Unit,
+    onAdjustClicked: () -> Unit,
+    onAnalyticsClicked: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -86,11 +86,10 @@ fun DashboardContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ActionButton("Adjust", Icons.Default.Create) { /* TODO */ }
-            ActionButton("Pause", Icons.Default.Close) { /* TODO */ }
-            ActionButton("Analytics", Icons.Default.List) { /* TODO */ }
+            ActionButton("Adjust", painterResource(id = R.drawable.baseline_percent_24), onAdjustClicked)
+            ActionButton("Pause", painterResource(id = R.drawable.baseline_pause_24)) { /* TODO */ }
+            ActionButton("Analytics", painterResource(id = R.drawable.baseline_bar_chart_24), onAnalyticsClicked)
         }
-
         Spacer(modifier = Modifier.height(16.dp))
 
         Box(
@@ -124,7 +123,7 @@ fun DashboardContent(
             Text("Interest Rate (Example: 2.24%)", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(onClick = onWithdrawClicked) {
-                Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Withdraw")
+                Icon(painterResource(id = R.drawable.baseline_transit_enterexit_24), contentDescription = "Withdraw")
                 Spacer(modifier = Modifier.width(4.dp))
                 Text("Withdraw")
             }
@@ -151,8 +150,8 @@ fun DashboardContent(
                 .padding(bottom = 8.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.Refresh,
-                contentDescription = "Transaction History",
+                painter = painterResource(id = R.drawable.baseline_history_24),
+                contentDescription = "Clock Icon",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -217,16 +216,17 @@ fun DashboardContent(
 
 
 @Composable
-fun ActionButton(text: String, icon: ImageVector, onClick: () -> Unit) {
+fun ActionButton(text: String, iconPainter: Painter, onClick: () -> Unit) {
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
     ) {
-        Icon(icon, contentDescription = text, tint = MaterialTheme.colorScheme.onPrimary)
+        Icon(iconPainter, contentDescription = text, tint = MaterialTheme.colorScheme.onPrimary)
         Spacer(modifier = Modifier.width(4.dp))
         Text(text, color = MaterialTheme.colorScheme.onPrimary)
     }
 }
+
 
 @Composable
 fun InfoCard(title: String, value: String) {
