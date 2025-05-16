@@ -1,44 +1,33 @@
-package com.example.smartsave
+package com.example.smartsave // Ensure this package is correct
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.clickable // Import clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.items // <<< ENSURE THIS IMPORT IS CORRECT
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
-
+// Add other necessary Icons imports if ActionButton uses them e.g.
+// import androidx.compose.material.icons.filled.Create
+// import androidx.compose.material.icons.filled.Close
+// import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.painter.Painter // For ActionButton if using Painter
+import androidx.compose.ui.graphics.vector.ImageVector // For ActionButton if using ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.smartsave.model.Transaction
+import com.example.smartsave.ui.activity.dashboard.TransactionFilter // Import your enum
 import java.util.Locale
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,6 +37,8 @@ fun DashboardContent(
     savingsPercentage: Double,
     earnedThisMonthValue: String,
     progressThisMonthValue: String,
+    selectedFilter: TransactionFilter,
+    onFilterSelected: (TransactionFilter) -> Unit,
     isLoading: Boolean,
     errorMessage: String?,
     onLogout: () -> Unit,
@@ -63,16 +54,13 @@ fun DashboardContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        var selectedTab by remember { mutableStateOf("All") }
-
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
             IconButton(onClick = onLogout) {
                 Icon(
-                    imageVector = Icons.Default.ExitToApp,
+                    imageVector = Icons.Default.ExitToApp, // Make sure Icons.Default.ExitToApp is imported
                     contentDescription = "Logout",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -122,8 +110,7 @@ fun DashboardContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         Column(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text("Total Savings", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
@@ -142,11 +129,9 @@ fun DashboardContent(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            // --- USE THE NEW PARAMETER for "Earned this month" ---
             InfoCard("Earned this month", earnedThisMonthValue)
-            InfoCard("Progress this month", progressThisMonthValue) // TODO: Calculate this separately
+            InfoCard("Progress this month", progressThisMonthValue)
         }
-
 
         Spacer(modifier = Modifier.height(30.dp))
 
@@ -158,43 +143,32 @@ fun DashboardContent(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.baseline_history_24),
-                contentDescription = "Clock Icon",
+                contentDescription = "Transaction History Icon",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "Transaction History",
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Medium
+                style = MaterialTheme.typography.titleMedium
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        val tabOptions = listOf("All", "Today", "This Week")
-
         Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            tabOptions.forEach { tab ->
-                val isSelected = tab == selectedTab
-                Text(
-                    text = tab,
-                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .background(
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                            shape = MaterialTheme.shapes.small
-                        )
-                        .clickable { selectedTab = tab }
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                )
+            FilterButton("All", selectedFilter == TransactionFilter.ALL) {
+                onFilterSelected(TransactionFilter.ALL)
+            }
+            FilterButton("Today", selectedFilter == TransactionFilter.TODAY) {
+                onFilterSelected(TransactionFilter.TODAY)
+            }
+            FilterButton("This Week", selectedFilter == TransactionFilter.THIS_WEEK) {
+                onFilterSelected(TransactionFilter.THIS_WEEK)
             }
         }
-
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -211,8 +185,13 @@ fun DashboardContent(
                 )
             }
             transactions.isEmpty() && !isLoading -> {
+                val emptyMessage = when (selectedFilter) {
+                    TransactionFilter.TODAY -> "No transactions from today."
+                    TransactionFilter.THIS_WEEK -> "No transactions from this week."
+                    TransactionFilter.ALL -> "No transactions yet."
+                }
                 Text(
-                    "No transactions yet.",
+                    emptyMessage,
                     modifier = Modifier.padding(16.dp).fillMaxWidth(),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -220,7 +199,10 @@ fun DashboardContent(
             }
             else -> {
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                    items(transactions, key = { transaction -> transaction.id }) { tx ->
+                    items(
+                        items = transactions, // Explicitly name the parameter if compiler is confused
+                        key = { transaction -> transaction.id }
+                    ) { tx ->
                         TransactionCard(tx)
                         Spacer(modifier = Modifier.height(8.dp))
                     }
@@ -230,6 +212,25 @@ fun DashboardContent(
     }
 }
 
+// Ensure these helper Composables are in this file or correctly imported
+@Composable
+fun FilterButton(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Text(
+        text = text,
+        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .background(
+                if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                shape = MaterialTheme.shapes.small
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+    )
+}
 
 @Composable
 fun ActionButton(text: String, iconPainter: Painter, onClick: () -> Unit) {
@@ -242,7 +243,6 @@ fun ActionButton(text: String, iconPainter: Painter, onClick: () -> Unit) {
         Text(text, color = MaterialTheme.colorScheme.onPrimary)
     }
 }
-
 
 @Composable
 fun InfoCard(title: String, value: String) {
