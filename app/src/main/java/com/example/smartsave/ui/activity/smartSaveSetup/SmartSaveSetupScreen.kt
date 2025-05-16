@@ -204,6 +204,8 @@ fun SmartSaveSetupScreen(navController: NavController) {
             }
 
             Button(
+                // In SmartSaveSetupScreen.kt, inside Button onClick:
+
                 onClick = {
                     if (currentUser == null) {
                         Toast.makeText(context, "Error: User not logged in.", Toast.LENGTH_SHORT).show()
@@ -212,43 +214,75 @@ fun SmartSaveSetupScreen(navController: NavController) {
                     isSaving = true
                     val userId = currentUser.uid
                     val profileRef = database.reference.child("smartSaveProfile").child(userId)
-
-                    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                    val currentDate = sdf.format(Date())
-
                     val newSavingsPercentage = percentage.toDouble()
-                    val newStartDate = existingProfile?.startDate?.takeIf { it.isNotEmpty() } ?: currentDate
-                    val newTotalSaved = existingProfile?.totalSaved ?: 0.0 // Keep existing or init to 0
 
-                    val profileToSave = SmartSaveProfile(
-                        newSavingsPercentage, // Argument 1 for savingsPercentage
-                        newStartDate,         // Argument 2 for startDate
-                        newTotalSaved         // Argument 3 for totalSaved
-                    )
+                    if (existingProfile != null) {
+                        // --- EDIT MODE: Update only the savingsPercentage ---
+                        Log.d(TAG_SETUP_SCREEN, "Updating existing profile. New percentage: $newSavingsPercentage for user $userId")
+                        val updates = HashMap<String, Any>()
+                        updates["savingsPercentage"] = newSavingsPercentage
+                        // We don't update startDate or totalSaved here, they are preserved.
+                        // The 'transactions' node is also not touched by updateChildren at this path.
 
-                    profileRef.setValue(profileToSave)
-                        .addOnSuccessListener {
-                            Log.d(TAG_SETUP_SCREEN, "SmartSave profile saved successfully for user $userId")
-                            Toast.makeText(context, "SmartSave settings saved!", Toast.LENGTH_SHORT).show()
-                            isSaving = false
-                            // Also trigger recalculation of totalSaved in case percentage changes how future savings are calculated
-                            // (though totalSaved itself is preserved here, other parts of app might depend on new percentage)
-                            // SavingsCalculator.recalculateAndUpdatetotalSaved(...) // If needed immediately
+                        profileRef.updateChildren(updates)
+                            .addOnSuccessListener {
+                                Log.d(TAG_SETUP_SCREEN, "SmartSave percentage updated successfully for user $userId")
+                                Toast.makeText(context, "Savings percentage updated!", Toast.LENGTH_SHORT).show()
+                                isSaving = false
 
-                            navController.navigate(Screen.Dashboard.route) {
-                                popUpTo(Screen.Login.route) { inclusive = true } // Go to Dashboard, clear login & setup
-                                // OR if coming from Dashboard (edit mode):
-                                // popUpTo(Screen.Setup.route) { inclusive = true }
-                                // To handle this, you'd need to know if it's create or edit mode.
-                                // For now, let's assume it always clears up to login.
+                                // --- Ensure Dashboard refreshes ---
+                                // Option 1: Just navigate. Dashboard's listeners should pick up the change.
+                                navController.navigate(Screen.Dashboard.route) {
+                                    // If coming from Dashboard (edit mode), pop only Setup
+                                    // If first time setup, pop up to Login
+                                    // This needs a way to distinguish edit vs create for navigation.
+                                    // For now, let's assume a consistent pop for simplicity,
+                                    // or handle this with a passed argument to SmartSaveSetupScreen.
+                                    popUpTo(Screen.Login.route) { inclusive = true } // Or better, popUpTo(Screen.Setup.route){ inclusive = true } if truly an edit
+                                }
+
+                                // Option 2 (More proactive, if needed, but usually not):
+                                // You could pass a lambda from Dashboard to Setup to trigger a manual refresh,
+                                // or use a shared ViewModel. But Firebase listeners usually suffice.
                             }
-                        }
-                        .addOnFailureListener { e ->
-                            Log.e(TAG_SETUP_SCREEN, "Failed to save SmartSave profile for user $userId", e)
-                            Toast.makeText(context, "Failed to save settings: ${e.message}", Toast.LENGTH_LONG).show()
-                            isSaving = false
-                        }
+                            .addOnFailureListener { e ->
+                                Log.e(TAG_SETUP_SCREEN, "Failed to update SmartSave percentage for user $userId", e)
+                                Toast.makeText(context, "Failed to update settings: ${e.message}", Toast.LENGTH_LONG).show()
+                                isSaving = false
+                            }
+                    } else {
+                        // --- CREATE MODE: Set the initial profile (as before) ---
+                        Log.d(TAG_SETUP_SCREEN, "Creating new profile. Percentage: $newSavingsPercentage for user $userId")
+                        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                        val currentDate = sdf.format(Date())
+                        val newStartDate = currentDate
+                        val newTotalSaved = 0.0 // Initial total saved
+
+                        // Using your Java class constructor for SmartSaveProfile
+                        val profileToSave = SmartSaveProfile(
+                            newSavingsPercentage,
+                            newStartDate,
+                            newTotalSaved
+                        )
+                        // This will create the profile node with only these fields.
+                        // The 'transactions' node will be added later under this profileRef.
+                        profileRef.setValue(profileToSave)
+                            .addOnSuccessListener {
+                                Log.d(TAG_SETUP_SCREEN, "SmartSave profile created successfully for user $userId")
+                                Toast.makeText(context, "SmartSave settings saved!", Toast.LENGTH_SHORT).show()
+                                isSaving = false
+                                navController.navigate(Screen.Dashboard.route) {
+                                    popUpTo(Screen.Login.route) { inclusive = true }
+                                }
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e(TAG_SETUP_SCREEN, "Failed to create SmartSave profile for user $userId", e)
+                                Toast.makeText(context, "Failed to save settings: ${e.message}", Toast.LENGTH_LONG).show()
+                                isSaving = false
+                            }
+                    }
                 },
+// ... (rest of Button parameters)
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
