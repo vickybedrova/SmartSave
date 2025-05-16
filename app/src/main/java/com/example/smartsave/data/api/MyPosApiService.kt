@@ -1,10 +1,10 @@
 package com.example.smartsave.data.api
 
 import com.example.smartsave.data.models.AuthSessionData
-import com.example.smartsave.data.models.OAuthTokenResponse // We'll create this
+import com.example.smartsave.data.models.AuthSessionRequest // Import the moved model
+import com.example.smartsave.data.models.OAuthTokenResponse
 import com.example.smartsave.data.models.TransactionResponse
-import com.google.gson.annotations.SerializedName
-import retrofit2.Call
+import retrofit2.Response // Import for suspend functions
 import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -14,11 +14,6 @@ import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Query
 
-data class AuthSessionRequest(
-    @SerializedName("client_id") val clientId: String,
-    @SerializedName("client_secret") val clientSecret: String
-)
-
 interface MyPosApiService {
 
     @GET("accounting/v1/transaction/list")
@@ -27,51 +22,41 @@ interface MyPosApiService {
         "X-Application-Id: mps-app-30000837", // Your Partner App ID
         "X-Partner-Id: mps-p-10000107"      // Your Partner ID
     )
-    fun getTransactions(
+    suspend fun getTransactions( // Changed to suspend
         @Header("X-Session") session: String,
         @Header("Authorization") authorization: String, // Should be "Bearer <token>"
         @Query("page") page: Int,
         @Query("page_size") pageSize: Int
-    ): Call<TransactionResponse>
+    ): Response<TransactionResponse> // Changed to Response<T>
 
-    @FormUrlEncoded
-    @POST("api/v1/oauth/token") // Standard OAuth token endpoint
-    @Headers(
-        "Accept: application/json",
-        "X-Application-Id: mps-app-30000837", // Your Partner App ID
-        "X-Partner-Id: mps-p-10000107"      // Your Partner ID
-    )
-    fun getOAuthToken(
-        @Field("grant_type") grantType: String = "password", // Typically "password" for this flow
-        @Field("client_id") clientId: String,
-        @Field("client_secret") clientSecret: String,
-        @Field("username") username: String, // User's email/username
-        @Field("password") password: String  // User's password
-        // @Field("scope") scope: String? = null // Optional: if your API requires specific scopes
-    ): Call<OAuthTokenResponse>
-
+    // STEP 1: Generate OAuth Token (Client Credentials)
     @FormUrlEncoded
     @POST("api/v1/oauth/token")
     @Headers(
-        "Accept: application/json",
-        "X-Application-Id: mps-app-30000837",
-        "X-Partner-Id: mps-p-10000107"
+        "Accept: application/json" // REMOVED X-Application-Id and X-Partner-Id
+        // Content-Type: application/x-www-form-urlencoded is added by @FormUrlEncoded
     )
-    fun getClientCredentialsToken(
+    suspend fun getClientCredentialsToken(
         @Field("grant_type") grantType: String = "client_credentials",
-        @Field("client_id") clientId: String, // e.g., client_9bb109631eca436baf4b91e40fe7caf0
-        @Field("client_secret") clientSecret: String // e.g., secret_cc5e3ca77a56...
-        // NO username, NO password
-    ): Call<OAuthTokenResponse> // The response might be similar but for the application
+        @Field("client_id") clientId: String,
+        @Field("client_secret") clientSecret: String
+    ): Response<OAuthTokenResponse>
 
-    @POST("api/v1/auth/session") // Assuming it's a POST
+    // STEP 2: Create a new session for Non-Interactive User
+    @POST("api/v1/auth/session")
     @Headers(
         "Accept: application/json",
-        "Content-Type: application/json", // <<< Specify JSON content type
+        "Content-Type: application/json", // Ensured Content-Type for JSON body
+        // As per your original code, keep these if they are required by myPOS
         "X-Application-Id: mps-app-30000837",
         "X-Partner-Id: mps-p-10000107"
     )
-    fun getAuthSession(
-        @Body body: AuthSessionRequest
-    ): Call<AuthSessionData> // Replace YourSessionResponseModel
+    suspend fun getAuthSession( // Changed to suspend
+        @Header("Authorization") authorization: String, // For the Bearer token from Step 1
+        @Body body: AuthSessionRequest // JSON body with client_id and client_secret
+    ): Response<AuthSessionData> // Changed to Response<T>
+
+    // Note: The original getOAuthToken with username/password has been removed
+    // as the API docs specify client_credentials grant type for /oauth/token.
+    // If you have a different endpoint for username/password login, you'd add it separately.
 }
