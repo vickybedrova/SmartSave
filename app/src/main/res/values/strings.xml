@@ -30,10 +30,10 @@
     <string name="smart_save_by_mypos">SmartSave by myPOS</string>
     <string name="smart_save_description">The selected percentage of each transaction will be transferred to your SmartSave savings account. The savings + the bonus will be automatically transferred by the month’s end.</string>
     <string name="percentage_to_save">Percentage to Save (%)</string>
-    <string name="agree_to_terms_prefix">By clicking “Setup SmartSave” you agree to our </string>
-    <string name="terms_and_conditions">Terms and Conditions</string>
-    <string name="and"> and </string>
-    <string name="privacy_statement">Privacy Statement</string>
+    <string name="agree_to_terms_prefix">By clicking “Setup SmartSave” you agree to our</string> <!-- No trailing space -->
+    <string name="terms_and_conditions">Terms and Conditions</string> <!-- No leading/trailing space -->
+    <string name="and_conjunction">and</string> <!-- No leading/trailing space -->
+    <string name="privacy_statement">Privacy Statement</string> <!-- No leading/trailing space -->
     <string name="setup_smartsave">Setup SmartSave</string>
 
 </resources>
