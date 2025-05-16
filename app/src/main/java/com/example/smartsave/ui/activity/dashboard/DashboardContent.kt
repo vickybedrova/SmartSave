@@ -2,6 +2,7 @@ package com.example.smartsave
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,15 +20,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +36,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.smartsave.model.Transaction
 import java.util.Locale
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +62,9 @@ fun DashboardContent(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        var selectedTab by remember { mutableStateOf("All") }
+
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -165,20 +172,29 @@ fun DashboardContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        val tabOptions = listOf("All", "Today", "This Week")
+
         Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-            modifier = Modifier.fillMaxWidth()
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("All", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(
-                "Today",
-                color = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.primary, shape = MaterialTheme.shapes.small)
-                    .padding(horizontal = 12.dp, vertical = 4.dp)
-            )
-            Text("This Week", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            tabOptions.forEach { tab ->
+                val isSelected = tab == selectedTab
+                Text(
+                    text = tab,
+                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .background(
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                            shape = MaterialTheme.shapes.small
+                        )
+                        .clickable { selectedTab = tab }
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+            }
         }
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
