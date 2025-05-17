@@ -29,23 +29,27 @@ public class SavingsCalculator {
     private static final String TRANSACTIONS_SUB_NODE = "transactions";
     private static final String DB_URL = "https://smartsave-e0e7b-default-rtdb.europe-west1.firebasedatabase.app/";
 
-    // Callback for total saved calculation
+    public interface CompoundInterestProjectionCallback {
+        void onSuccess(double futureValue, double interestEarned);
+        void onError(String errorMessage); // Optional, if the calculation could fail (e.g., invalid input)
+    }
+
     public interface CalculationCallback {
         void onSuccess(double newTotalSaved);
+
         void onError(String errorMessage);
     }
 
-    // Callback for interest earned calculation
     public interface InterestCalculationCallback {
         void onSuccess(double totalInterestEarned, String currency); // Pass currency too
         void onError(String errorMessage);
     }
 
-    // Callback for progress this month
     public interface MonthlyProgressCallback {
         void onSuccess(double totalProgress, String currency);
         void onError(String errorMessage);
     }
+
 
     public interface SelectedMonthInterestCallback {
         void onSuccess(double totalInterestForMonth, String currency);
@@ -64,10 +68,12 @@ public class SavingsCalculator {
         void onError(String errorMessage);
     }
 
+
+
     public static void calculateMonthlySavingsGrowth(
-            int targetYear, // The year of the most recent month in the series
-            int targetMonth, // The most recent month in the series (1-12)
-            int numberOfMonths, // How many months back to go (e.g., 6 or 12)
+            int targetYear,         // The year of the most recent month in the series
+            int targetMonth,        // The most recent month in the series (1-12)
+            int numberOfMonths,     // How many months back to go (e.g., 6 or 12)
             MonthlySavingsGrowthCallback callback
     ) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -83,6 +89,12 @@ public class SavingsCalculator {
             if (callback != null) callback.onError("Invalid number of months.");
             return;
         }
+        if (targetMonth < 1 || targetMonth > 12) {
+            Log.e(TAG, "[CalcGrowth] Invalid targetMonth: " + targetMonth);
+            if (callback != null) callback.onError("Invalid target month.");
+            return;
+        }
+
 
         DatabaseReference userTransactionsRef = FirebaseDatabase.getInstance(DB_URL)
                 .getReference(SMART_SAVE_PROFILE_NODE)
@@ -90,66 +102,60 @@ public class SavingsCalculator {
                 .child(TRANSACTIONS_SUB_NODE);
 
         // We need all transactions up to the end of the targetMonth of targetYear
-        Calendar endOfPeriodCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        endOfPeriodCalendar.set(targetYear, targetMonth - 1, 1); // Start of target month
-        endOfPeriodCalendar.add(Calendar.MONTH, 1); // Start of next month
-        endOfPeriodCalendar.add(Calendar.MILLISECOND, -1); // End of target month
-        long overallEndTimestamp = endOfPeriodCalendar.getTimeInMillis();
+        // to correctly calculate cumulative totals for each preceding month.
+        Calendar endOfOverallPeriodCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        endOfOverallPeriodCalendar.set(targetYear, targetMonth - 1, 1); // Start of target month (month is 0-indexed)
+        endOfOverallPeriodCalendar.set(Calendar.DAY_OF_MONTH, endOfOverallPeriodCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)); // Last day of target month
+        endOfOverallPeriodCalendar.set(Calendar.HOUR_OF_DAY, 23);
+        endOfOverallPeriodCalendar.set(Calendar.MINUTE, 59);
+        endOfOverallPeriodCalendar.set(Calendar.SECOND, 59);
+        endOfOverallPeriodCalendar.set(Calendar.MILLISECOND, 999);
+        long overallEndTimestamp = endOfOverallPeriodCalendar.getTimeInMillis();
 
-        Log.i(TAG, "[CalcGrowth] Calculating growth up to: " + new java.util.Date(overallEndTimestamp));
+        Log.i(TAG, "[CalcGrowth] Calculating growth for " + numberOfMonths + " months, ending " + targetMonth + "/" + targetYear);
+        Log.i(TAG, "[CalcGrowth] Fetching all transactions up to: " + new java.util.Date(overallEndTimestamp));
 
-        // Fetch all transactions up to this overall end timestamp
-        // We will process them in memory to get cumulative totals per month
         Query allRelevantTransactionsQuery = userTransactionsRef.orderByChild("timestamp")
-                .endAt((double) overallEndTimestamp);
+                .endAt((double) overallEndTimestamp); // Get all tx up to end of the period
 
         allRelevantTransactionsQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.exists()) {
-                    Log.i(TAG, "[CalcGrowth] No transactions found for user " + userId + " up to the period end.");
-                    // Return a list of zeros or handle as appropriate
-                    List<Map<String, Object>> emptyGrowthData = new ArrayList<>();
-                    Calendar monthIterator = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                    monthIterator.set(targetYear, targetMonth -1, 1); // Start from target month
-                    for (int i = 0; i < numberOfMonths; i++) {
-                        Map<String, Object> monthPoint = new HashMap<>();
-                        monthPoint.put("monthName", new SimpleDateFormat("MMM", Locale.ENGLISH).format(monthIterator.getTime()));
-                        monthPoint.put("year", monthIterator.get(Calendar.YEAR));
-                        monthPoint.put("savings", 0.0);
-                        emptyGrowthData.add(monthPoint);
-                        monthIterator.add(Calendar.MONTH, -1); // Go to previous month
+                List<Transaction> allFetchedTransactions = new ArrayList<>();
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot txSnapshot : dataSnapshot.getChildren()) {
+                        Transaction transaction = txSnapshot.getValue(Transaction.class);
+                        if (transaction != null) {
+                            allFetchedTransactions.add(transaction);
+                        }
                     }
-                    Collections.reverse(emptyGrowthData); // Oldest first
-                    if (callback != null) callback.onSuccess(emptyGrowthData);
-                    return;
+                    // Sort by timestamp to ensure correct cumulative calculation
+                    Collections.sort(allFetchedTransactions, (t1, t2) -> Long.compare(t1.getTimestamp(), t2.getTimestamp()));
+                } else {
+                    Log.i(TAG, "[CalcGrowth] No transactions found for user " + userId + " up to the period end.");
                 }
 
-                List<Transaction> allTransactions = new ArrayList<>();
-                for (DataSnapshot txSnapshot : dataSnapshot.getChildren()) {
-                    Transaction transaction = txSnapshot.getValue(Transaction.class);
-                    if (transaction != null) {
-                        allTransactions.add(transaction);
-                    }
-                }
-                // Sort transactions by timestamp just in case, though Firebase query should handle it
-                Collections.sort(allTransactions, (t1, t2) -> Long.compare(t1.getTimestamp(), t2.getTimestamp()));
 
                 List<Map<String, Object>> monthlyGrowthData = new ArrayList<>();
-                Calendar monthEndCalculator = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                monthEndCalculator.set(targetYear, targetMonth - 1, 1); // Start from target month for iteration
+                Calendar monthIteratorCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                // Start iterating from the target month and go backwards
+                monthIteratorCalendar.set(targetYear, targetMonth - 1, 1); // month is 0-indexed
+
+                SimpleDateFormat monthNameFormat = new SimpleDateFormat("MMM", Locale.ENGLISH);
 
                 for (int i = 0; i < numberOfMonths; i++) {
                     // Determine the end of the current month we are calculating for
-                    monthEndCalculator.set(Calendar.DAY_OF_MONTH, monthEndCalculator.getActualMaximum(Calendar.DAY_OF_MONTH));
-                    monthEndCalculator.set(Calendar.HOUR_OF_DAY, 23);
-                    monthEndCalculator.set(Calendar.MINUTE, 59);
-                    monthEndCalculator.set(Calendar.SECOND, 59);
-                    monthEndCalculator.set(Calendar.MILLISECOND, 999);
-                    long currentMonthEndTimestamp = monthEndCalculator.getTimeInMillis();
+                    Calendar currentMonthEndCalendar = (Calendar) monthIteratorCalendar.clone();
+                    currentMonthEndCalendar.set(Calendar.DAY_OF_MONTH, currentMonthEndCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+                    currentMonthEndCalendar.set(Calendar.HOUR_OF_DAY, 23);
+                    currentMonthEndCalendar.set(Calendar.MINUTE, 59);
+                    currentMonthEndCalendar.set(Calendar.SECOND, 59);
+                    currentMonthEndCalendar.set(Calendar.MILLISECOND, 999);
+                    long currentMonthEndTimestamp = currentMonthEndCalendar.getTimeInMillis();
 
                     double totalSavedUpToThisMonthEnd = 0.0;
-                    for (Transaction transaction : allTransactions) {
+                    for (Transaction transaction : allFetchedTransactions) {
+                        // Only consider transactions up to the end of *this specific month* in the iteration
                         if (transaction.getTimestamp() <= currentMonthEndTimestamp) {
                             String type = transaction.getType() != null ? transaction.getType().toUpperCase() : "";
                             switch (type) {
@@ -169,22 +175,19 @@ public class SavingsCalculator {
                     }
 
                     Map<String, Object> monthPoint = new HashMap<>();
-                    // Get month name (e.g., "Jan", "Feb")
-                    monthPoint.put("monthName", new SimpleDateFormat("MMM", Locale.ENGLISH).format(monthEndCalculator.getTime()));
-                    monthPoint.put("year", monthEndCalculator.get(Calendar.YEAR)); // Store year too
+                    monthPoint.put("monthName", monthNameFormat.format(monthIteratorCalendar.getTime()));
+                    monthPoint.put("year", monthIteratorCalendar.get(Calendar.YEAR));
                     monthPoint.put("savings", totalSavedUpToThisMonthEnd);
                     monthlyGrowthData.add(monthPoint);
 
-                    Log.d(TAG, "[CalcGrowth] End of " + (monthEndCalculator.get(Calendar.MONTH) + 1) + "/" + monthEndCalculator.get(Calendar.YEAR) +
+                    Log.d(TAG, "[CalcGrowth] End of " + (monthIteratorCalendar.get(Calendar.MONTH) + 1) + "/" + monthIteratorCalendar.get(Calendar.YEAR) +
                             ": Total Saved = " + totalSavedUpToThisMonthEnd);
 
                     // Move to the previous month for the next iteration
-                    monthEndCalculator.add(Calendar.MONTH, -1);
-                    // Ensure it's set to the beginning of that previous month to correctly calculate its end
-                    monthEndCalculator.set(Calendar.DAY_OF_MONTH, 1);
+                    monthIteratorCalendar.add(Calendar.MONTH, -1);
                 }
 
-                Collections.reverse(monthlyGrowthData); // Ensure chronological order (oldest month first)
+                Collections.reverse(monthlyGrowthData); // Ensure chronological order (oldest month first for the chart)
                 if (callback != null) callback.onSuccess(monthlyGrowthData);
             }
 
@@ -196,6 +199,36 @@ public class SavingsCalculator {
         });
     }
 
+
+    public static void calculateCompoundInterestProjection(
+            double currentTotalSavings,
+            double annualInterestRate, // e.g., 0.03 for 3%
+            CompoundInterestProjectionCallback callback
+    ) {
+        if (currentTotalSavings < 0) { // Or <= 0 depending on your logic
+            // Log.w(TAG, "[CompoundProjection] Current total savings is not positive, cannot project growth.");
+            if (callback != null) callback.onError("No current savings to project.");
+            return;
+        }
+        if (annualInterestRate < 0) {
+            // Log.w(TAG, "[CompoundProjection] Annual interest rate cannot be negative.");
+            if (callback != null) callback.onError("Invalid interest rate.");
+            return;
+        }
+
+        double rateForSixMonths = annualInterestRate / 2.0;
+        double interestEarned = currentTotalSavings * rateForSixMonths;
+        double futureValue = currentTotalSavings + interestEarned;
+
+        Log.i(TAG, "[CompoundProjection] Current: " + currentTotalSavings +
+                ", Rate (annual): " + (annualInterestRate * 100) + "%" +
+                ", Future Value (6m): " + futureValue +
+                ", Interest Earned (6m): " + interestEarned);
+
+        if (callback != null) {
+            callback.onSuccess(futureValue, interestEarned);
+        }
+    }
 
 
 public static void calculateIncomeSavingsForSelectedMonth(

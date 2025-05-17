@@ -104,6 +104,13 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
     var savingsGrowthErrorMessage by remember { mutableStateOf<String?>(null) }
     var overallSavingsForChartHeader by remember { mutableStateOf(0.0) } // To display total at top of chart
 
+
+    var compoundInterestSentence by remember { mutableStateOf<String?>(null) }
+    var isLoadingCompoundInterestSentence by remember { mutableStateOf(true) }
+
+    val assumedAnnualInterestRateForProjection = 0.03 // 3%
+
+
     LaunchedEffect(key1 = Unit) { // <<<< KEY IS Unit
         isLoadingTotalSavings = true
         totalSavingsErrorMessage = null
@@ -126,6 +133,44 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
                 isLoadingTotalSavings = false
             }
         })
+    }
+
+    LaunchedEffect(key1 = isLoadingTotalSavings) {
+        // Only proceed if total savings has finished loading (either success or error)
+        if (!isLoadingTotalSavings) {
+            if (totalSavingsValue > 0 && totalSavingsErrorMessage == null) {
+                // We still set isLoadingCompoundInterestSentence to true here to indicate THIS calculation is starting
+                isLoadingCompoundInterestSentence = true
+                Log.d(TAG_ANALYTICS_SCREEN, "LaunchedEffect (CompoundProjection): Calculating for total $totalSavingsValue")
+                SavingsCalculator.calculateCompoundInterestProjection(
+                    totalSavingsValue,
+                    assumedAnnualInterestRateForProjection,
+                    object : SavingsCalculator.CompoundInterestProjectionCallback {
+                        override fun onSuccess(futureValue: Double, interestEarned: Double) {
+                            compoundInterestSentence = String.format(
+                                Locale.ENGLISH,
+                                "Leave %.2f BGN and let them grow. Get back %.2f BGN in just 6 months.",
+                                totalSavingsValue,
+                                futureValue
+                            )
+                            Log.i(TAG_ANALYTICS_SCREEN, "Success (CompoundProjection): $compoundInterestSentence")
+                            isLoadingCompoundInterestSentence = false // Calculation finished
+                        }
+
+                        override fun onError(errorMessage: String) {
+                            Log.e(TAG_ANALYTICS_SCREEN, "Error (CompoundProjection): $errorMessage")
+                            compoundInterestSentence = "Could not calculate growth projection."
+                            isLoadingCompoundInterestSentence = false // Calculation finished (with error)
+                        }
+                    }
+                )
+            } else {
+                // Total savings is 0, or there was an error loading it, so no projection.
+                compoundInterestSentence = null
+                isLoadingCompoundInterestSentence = false // Not loading, nothing to project
+                Log.d(TAG_ANALYTICS_SCREEN, "Skipping compound projection: totalSavingsValue is 0 or error occurred.")
+            }
+        }
     }
 
     // --- LaunchedEffect for "Earned from Interest" (runs when selectedMonth or selectedYear changes) ---
@@ -447,36 +492,34 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
             when {
                 isLoadingSavingsGrowth -> {
                     Box(
-                        modifier = Modifier.fillMaxSize(), // Fill the space provided by ChartCard's inner Box
-                        contentAlignment = Alignment.Center // Center content within this Box
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator()
                     }
                 }
-
                 savingsGrowthData.isNotEmpty() -> {
                     LineChart(
                         chartDataPoints = savingsGrowthData,
-                        headerValue = overallSavingsForChartHeader
+                        headerValue = overallSavingsForChartHeader,
+                        // VVVVVV ADD THE MISSING ARGUMENTS VVVVVV
+                        compoundInterestText = compoundInterestSentence,
+                        isLoadingCompoundInterestText = isLoadingCompoundInterestSentence
                     )
                 }
-
                 savingsGrowthErrorMessage != null -> {
-                    // Wrap error Text in a Box
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Error loading chart data.", // Or savingsGrowthErrorMessage
+                            text = "Error loading chart data.", // Or use savingsGrowthErrorMessage
                             color = MaterialTheme.colorScheme.error,
                             textAlign = TextAlign.Center
                         )
                     }
                 }
-
-                else -> { // No error, but no data
-                    // Wrap "No data" Text in a Box
+                else -> { // No error, but no data (savingsGrowthData is empty)
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -707,141 +750,123 @@ fun ChartCard(content: @Composable () -> Unit) {
     }
 }
 
-
 @Composable
 fun LineChart(
-    chartDataPoints: List<ChartDataPoint>, // Takes dynamic data
-    headerValue: Double // For the "23’261 BGN" text
+    chartDataPoints: List<ChartDataPoint>,
+    headerValue: Double,
+    compoundInterestText: String?, // Parameter for the sentence
+    isLoadingCompoundInterestText: Boolean // Parameter for its loading state
 ) {
-    if (chartDataPoints.isEmpty()) {
-        Text("No data to display chart.", style = MaterialTheme.typography.bodyMedium)
-        return
-    }
+    // The `when` block in AnalyticsScreen now handles the primary empty/loading state for the chart area.
+    // This composable can assume chartDataPoints might be empty if its parent decided to render it that way,
+    // but the most common case is it will have data.
 
     val values = chartDataPoints.map { it.value }
-    val minY = 0f
-    val maxY = values.maxOrNull()?.coerceAtLeast(100f) ?: 10000f
+    val minY = remember(values) { values.minOrNull()?.let { if (it < 0f) it else 0f } ?: 0f }
+    val maxY = remember(values) { values.maxOrNull()?.let { maxVal -> if (maxVal > minY) maxVal * 1.1f else minY + 100f } ?: (minY + 100f) }
     val monthLabels = chartDataPoints.map { it.label }
 
     val lineColor = blue
     val fillGradient = Brush.verticalGradient(
         colors = listOf(lineColor.copy(alpha = 0.3f), Color.Transparent)
     )
+
     Column {
-        Column {
-            Text(
-                String.format(Locale.getDefault(), "%.2f EUR", headerValue),
-                style = MaterialTheme.typography.headlineSmall
-            )
-            Text("Cumulative Savings", color = lineColor) // Changed subtitle
+        // --- Chart Header ---
+        Text(
+            String.format(Locale.getDefault(), "%.2f EUR", headerValue),
+            style = MaterialTheme.typography.headlineSmall
+        )
+        Text("Cumulative Savings", color = lineColor)
+        Spacer(modifier = Modifier.height(12.dp))
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)) {
-                // Y-Axis Labels (Dynamically generate based on maxY)
+        // --- Chart Drawing Area ---
+        if (chartDataPoints.isEmpty()) {
+            // This will only show if AnalyticsScreen's `when` block lets it through
+            // (e.g. if savingsGrowthData became empty after initially being non-empty, which is unlikely with current setup)
+            Box(modifier = Modifier.fillMaxWidth().height(200.dp).padding(16.dp), contentAlignment = Alignment.Center) {
+                Text("No data points for chart.", style = MaterialTheme.typography.bodyMedium)
+            }
+        } else {
+            Row(modifier = Modifier.fillMaxWidth().height(200.dp)) {
+                // Y-Axis Labels
                 Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .padding(end = 4.dp),
+                    modifier = Modifier.fillMaxHeight().padding(end = 8.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     val numYLabels = 6
+                    val yLabelRange = (maxY - minY).coerceAtLeast(1f)
                     for (i in (numYLabels - 1) downTo 0) {
-                        val labelValue =
-                            minY + (i.toFloat() / (numYLabels - 1).toFloat()) * (maxY - minY)
+                        val labelValue = minY + (i.toFloat() / (numYLabels - 1).toFloat().coerceAtLeast(1f)) * yLabelRange
                         Text(
                             String.format(Locale.getDefault(), "%.0f", labelValue),
-                            style = MaterialTheme.typography.labelSmall
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.align(Alignment.End)
                         )
                     }
                 }
 
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Canvas(modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 8.dp)) {
-                        if (values.size < 2) return@Canvas
+                // Chart Canvas
+                Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        // Handle case of single data point for drawing just a circle
+                        if (chartDataPoints.size == 1) {
+                            val x = size.width / 2f
+                            val yFraction = ((values.first() - minY) / (maxY - minY).coerceAtLeast(1f)).coerceIn(0f, 1f)
+                            val y = size.height * (1 - yFraction)
+                            val point = Offset(x.coerceIn(0f, size.width), y.coerceIn(0f, size.height))
+                            drawCircle(color = lineColor, radius = 8f, center = point)
+                            drawCircle(color = Color.White, radius = 4f, center = point)
+                            return@Canvas
+                        }
+                        // If less than 2 points (and not 1), don't draw line/fill
+                        if (chartDataPoints.size < 2) return@Canvas
 
-                        val spacing = size.width / (values.size - 1).toFloat().coerceAtLeast(1f)
-                        val canvasHeight = size.height
+
+                        val effectiveMaxY = if (maxY == minY) maxY + 1f else maxY
+                        val rangeY = (effectiveMaxY - minY).coerceAtLeast(1f)
 
                         val points = values.mapIndexed { index, value ->
-                            val x = index * spacing
-                            val y =
-                                canvasHeight - ((value - minY) / (maxY - minY).coerceAtLeast(1f)) * canvasHeight
-                            Offset(x.coerceIn(0f, size.width), y.coerceIn(0f, canvasHeight))
+                            val xFraction = if (values.size > 1) index.toFloat() / (values.size - 1).toFloat() else 0.5f
+                            val x = xFraction * size.width
+                            val yFraction = ((value - minY) / rangeY).coerceIn(0f,1f)
+                            val y = size.height * (1 - yFraction)
+                            Offset(x.coerceIn(0f, size.width), y.coerceIn(0f, size.height))
                         }
 
+                        // Draw Fill Path
                         val fillPath = Path().apply {
-                            moveTo(points.first().x, canvasHeight) // Start from bottom-left
-                            points.forEachIndexed { index, point ->
-                                if (index == 0) lineTo(point.x, point.y)
-                                else {
-                                    val prev = points[index - 1]
-                                    if (values.size > 2 && index < points.size) {
-                                        val prevPrev =
-                                            points.getOrElse(index - 2) { prev } // Control point 1
-                                        val next =
-                                            points.getOrElse(index + 1) { point }     // Control point 2
-                                        val c1x = prev.x + (point.x - prevPrev.x) / 6f
-                                        val c1y = prev.y + (point.y - prevPrev.y) / 6f
-                                        val c2x = point.x - (next.x - prev.x) / 6f
-                                        val c2y = point.y - (next.y - prev.y) / 6f
-                                        cubicTo(c1x, c1y, c2x, c2y, point.x, point.y)
-                                    } else {
-                                        lineTo(point.x, point.y)
-                                    }
-                                }
-                            }
-                            lineTo(points.last().x, canvasHeight)
+                            moveTo(points.first().x, size.height)
+                            points.forEach { lineTo(it.x, it.y) }
+                            lineTo(points.last().x, size.height)
                             close()
                         }
                         drawPath(fillPath, brush = fillGradient)
 
+                        // Draw Stroke Path
                         val strokePath = Path().apply {
                             moveTo(points.first().x, points.first().y)
-                            points.forEachIndexed { index, point ->
-                                if (index > 0) {
-                                    val prev = points[index - 1]
-                                    if (values.size > 2 && index < points.size) {
-                                        val prevPrev = points.getOrElse(index - 2) { prev }
-                                        val next = points.getOrElse(index + 1) { point }
-                                        val c1x = prev.x + (point.x - prevPrev.x) / 6f
-                                        val c1y = prev.y + (point.y - prevPrev.y) / 6f
-                                        val c2x = point.x - (next.x - prev.x) / 6f
-                                        val c2y = point.y - (next.y - prev.y) / 6f
-                                        cubicTo(c1x, c1y, c2x, c2y, point.x, point.y)
-                                    } else {
-                                        lineTo(point.x, point.y)
-                                    }
-                                }
-                            }
+                            points.drop(1).forEach { lineTo(it.x, it.y) }
                         }
-                        drawPath(
-                            strokePath,
-                            color = lineColor,
-                            style = Stroke(width = 4f, cap = StrokeCap.Round)
-                        )
+                        drawPath(strokePath, color = lineColor, style = Stroke(width = 4f, cap = StrokeCap.Round))
 
+                        // Draw Circles
                         points.forEach {
-                            drawCircle(color = lineColor, radius = 6f, center = it)
+                            drawCircle(color = lineColor, radius = 8f, center = it)
+                            drawCircle(color = Color.White, radius = 4f, center = it)
                         }
                     }
                 }
             }
+        }
 
-            Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
+        // X-Axis Labels
+        if (monthLabels.isNotEmpty()) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        start = (24.dp + 8.dp) /* Align with chart canvas padding */,
-                        end = 8.dp
-                    ),
-                horizontalArrangement = if (monthLabels.size > 1) Arrangement.SpaceBetween else Arrangement.Start
+                modifier = Modifier.fillMaxWidth().padding(start = (32.dp + 8.dp)),
+                horizontalArrangement = if (monthLabels.size > 1) Arrangement.SpaceBetween else Arrangement.Center
             ) {
                 monthLabels.forEach {
                     Text(it, style = MaterialTheme.typography.labelSmall)
@@ -851,14 +876,23 @@ fun LineChart(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Text(
-            text = "Leave €842 and let them grow. Get back €858.84 in just 6 months.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        // --- Display the Compound Interest Projection Sentence ---
+        Box(
+            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isLoadingCompoundInterestText) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+            } else if (compoundInterestText != null) {
+                Text(
+                    text = compoundInterestText,
+                    style = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.Center),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            // Optional: else { Text("Projection not available.") }
+        }
     }
 }
-
-
-
 
