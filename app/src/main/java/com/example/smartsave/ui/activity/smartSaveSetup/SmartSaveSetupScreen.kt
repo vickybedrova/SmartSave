@@ -51,7 +51,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
     var initialProfileFetched by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = currentUser) {
-        if (currentUser == null) { /* ... navigation to login ... */
+        if (currentUser == null) {
             Log.w(TAG_SETUP_SCREEN, "No user, navigating to login.")
             navController.navigate(Screen.Login.route) {
                 popUpTo(navController.graph.startDestinationId) { inclusive = true }
@@ -74,7 +74,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
                         )
                         percentage = loadedPercentage
                     }
-                } else { /* ... no existing profile ... */
+                } else {
                     Log.d(TAG_SETUP_SCREEN, "No existing profile found for user $userId.")
                     existingProfile = null
                 }
@@ -82,7 +82,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
                 initialProfileFetched = true
             }
 
-            override fun onCancelled(error: DatabaseError) { /* ... error handling ... */
+            override fun onCancelled(error: DatabaseError) {
                 Log.e(
                     TAG_SETUP_SCREEN,
                     "Error fetching profile: ${error.message}",
@@ -100,7 +100,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
         profileRef.addListenerForSingleValueEvent(listener)
     }
 
-    if (isLoading && !initialProfileFetched) { /* ... Loading UI ... */
+    if (isLoading && !initialProfileFetched) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
@@ -112,7 +112,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text( /* ... Title ... */
+                Text(
                     text = buildAnnotatedString {
                         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                             append(stringResource(R.string.customize_your))
@@ -126,13 +126,13 @@ fun SmartSaveSetupScreen(navController: NavController) {
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                Text( /* ... Description ... */
+                Text(
                     text = stringResource(R.string.smart_save_description),
                     style = typography.bodyMedium.copy(color = colors.onBackground.copy(alpha = 0.75f)),
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(32.dp))
-                Row( /* ... Percentage Label ... */
+                Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -281,7 +281,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
                                     popUpTo(Screen.Login.route) { inclusive = true }
                                 }
                             }
-                            .addOnFailureListener { /* ... failure ... */
+                            .addOnFailureListener {
                                 Log.e(
                                     TAG_SETUP_SCREEN,
                                     "Failed to update SmartSave percentage for user $userId",
@@ -311,7 +311,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
                             true
                         )
                         profileRef.setValue(profileToSave)
-                            .addOnSuccessListener { /* ... success navigation ... */
+                            .addOnSuccessListener {
                                 Log.d(
                                     TAG_SETUP_SCREEN,
                                     "SmartSave profile created successfully with percentage $newSavingsPercentage"
@@ -326,7 +326,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
                                     popUpTo(Screen.Login.route) { inclusive = true }
                                 }
                             }
-                            .addOnFailureListener { /* ... failure ... */
+                            .addOnFailureListener {
                                 Log.e(
                                     TAG_SETUP_SCREEN,
                                     "Failed to create SmartSave profile for user $userId",
@@ -347,7 +347,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
                 shape = RoundedCornerShape(32.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = blue),
                 enabled = !isSaving && initialProfileFetched
-            ) { /* ... Button Text ... */
+            ) {
                 if (isSaving) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
                 } else {

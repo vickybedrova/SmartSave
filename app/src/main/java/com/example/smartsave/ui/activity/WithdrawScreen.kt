@@ -177,7 +177,7 @@ fun WithdrawScreen(navController: NavController, viewModel: WithdrawViewModel = 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     displayAmount,
-                    fontSize = 22.sp, // Match dashboard
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = colors.onSurface
                 )
@@ -298,7 +298,7 @@ fun WithdrawScreen(navController: NavController, viewModel: WithdrawViewModel = 
                                 popUpTo(Screen.Withdraw.route) { inclusive = true }
                                 launchSingleTop = true
                             }
-                        }, 1600) // long enough for the toast to be seen
+                        }, 1600)
                     } else {
                         Toast.makeText(context, "Not enough available balance.", Toast.LENGTH_LONG)
                             .show()

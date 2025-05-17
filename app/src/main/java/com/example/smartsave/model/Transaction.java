@@ -57,7 +57,7 @@ public class Transaction {
 
     public String getCurrency() {
         return currency == null ? "BGN" : currency;
-    } // Default currency if null
+    }
 
     public void setId(String id) {
         this.id = id;

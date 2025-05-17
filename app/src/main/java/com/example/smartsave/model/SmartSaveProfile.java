@@ -21,7 +21,7 @@ public class SmartSaveProfile {
         this.savingsPercentage = savingsPercentage;
         this.startDate = startDate;
         this.totalSaved = totalSaved;
-        this.isActive = isActive; // <<< SET IT HERE
+        this.isActive = isActive;
     }
 
     public SmartSaveProfile(double savingsPercentage, String startDate, double totalSaved) {
