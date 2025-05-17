@@ -748,7 +748,7 @@ fun ChartCard(content: @Composable () -> Unit) {
 fun LineChart(
     chartDataPoints: List<ChartDataPoint>,
     headerValue: Double,
-    compoundInterestText: String?, 
+    compoundInterestText: String?,
     isLoadingCompoundInterestText: Boolean
 ) {
 
@@ -764,7 +764,7 @@ fun LineChart(
     )
 
     Column {
-        // --- Chart Header ---
+
         Text(
             String.format(Locale.getDefault(), "%.2f EUR", headerValue),
             style = MaterialTheme.typography.headlineSmall
@@ -772,10 +772,7 @@ fun LineChart(
         Text("Cumulative Savings", color = lineColor)
         Spacer(modifier = Modifier.height(12.dp))
 
-        // --- Chart Drawing Area ---
         if (chartDataPoints.isEmpty()) {
-            // This will only show if AnalyticsScreen's `when` block lets it through
-            // (e.g. if savingsGrowthData became empty after initially being non-empty, which is unlikely with current setup)
             Box(modifier = Modifier.fillMaxWidth().height(200.dp).padding(16.dp), contentAlignment = Alignment.Center) {
                 Text("No data points for chart.", style = MaterialTheme.typography.bodyMedium)
             }
@@ -798,10 +795,8 @@ fun LineChart(
                     }
                 }
 
-                // Chart Canvas
                 Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
                     Canvas(modifier = Modifier.fillMaxSize()) {
-                        // Handle case of single data point for drawing just a circle
                         if (chartDataPoints.size == 1) {
                             val x = size.width / 2f
                             val yFraction = ((values.first() - minY) / (maxY - minY).coerceAtLeast(1f)).coerceIn(0f, 1f)
@@ -811,7 +806,6 @@ fun LineChart(
                             drawCircle(color = Color.White, radius = 4f, center = point)
                             return@Canvas
                         }
-                        // If less than 2 points (and not 1), don't draw line/fill
                         if (chartDataPoints.size < 2) return@Canvas
 
 
@@ -826,7 +820,6 @@ fun LineChart(
                             Offset(x.coerceIn(0f, size.width), y.coerceIn(0f, size.height))
                         }
 
-                        // Draw Fill Path
                         val fillPath = Path().apply {
                             moveTo(points.first().x, size.height)
                             points.forEach { lineTo(it.x, it.y) }
@@ -835,14 +828,12 @@ fun LineChart(
                         }
                         drawPath(fillPath, brush = fillGradient)
 
-                        // Draw Stroke Path
                         val strokePath = Path().apply {
                             moveTo(points.first().x, points.first().y)
                             points.drop(1).forEach { lineTo(it.x, it.y) }
                         }
                         drawPath(strokePath, color = lineColor, style = Stroke(width = 4f, cap = StrokeCap.Round))
 
-                        // Draw Circles
                         points.forEach {
                             drawCircle(color = lineColor, radius = 8f, center = it)
                             drawCircle(color = Color.White, radius = 4f, center = it)
@@ -854,7 +845,6 @@ fun LineChart(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // X-Axis Labels
         if (monthLabels.isNotEmpty()) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(start = (32.dp + 8.dp)),
@@ -868,7 +858,6 @@ fun LineChart(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // --- Display the Compound Interest Projection Sentence ---
         Box(
             modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 24.dp),
             contentAlignment = Alignment.Center
@@ -883,7 +872,6 @@ fun LineChart(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            // Optional: else { Text("Projection not available.") }
         }
     }
 }
