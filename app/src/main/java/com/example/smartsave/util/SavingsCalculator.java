@@ -249,7 +249,7 @@ public static void calculateIncomeSavingsForSelectedMonth(
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 double totalIncomeSavings = 0.0;
-                String currency = "EUR"; // Default
+                String currency = "BGN"; // Default
                 boolean currencyFound = false;
 
                 Log.i(TAG, "[CalcSelectedMonthIncomeSavings] onDataChange. Snapshot exists: " + dataSnapshot.exists() + ", Children in range: " + dataSnapshot.getChildrenCount());
@@ -409,7 +409,7 @@ public static void calculateIncomeSavingsForSelectedMonth(
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 double totalInterest = 0.0;
-                String currency = "EUR";
+                String currency = "BGN";
                 boolean currencyFound = false;
 
                 Log.i(TAG, "[CalcInterest] onDataChange. Snapshot exists: " + dataSnapshot.exists() + ", Children: " + dataSnapshot.getChildrenCount());
@@ -495,7 +495,7 @@ public static void calculateIncomeSavingsForSelectedMonth(
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 double totalProgress = 0.0;
-                String currency = "EUR"; // Default
+                String currency = "BGN"; // Default
                 boolean currencyFound = false;
 
                 Log.i(TAG, "[CalcProgress] onDataChange. Snapshot exists: " + dataSnapshot.exists() + ", Children in range: " + dataSnapshot.getChildrenCount());
@@ -609,7 +609,7 @@ public static void calculateIncomeSavingsForSelectedMonth(
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 double totalInterest = 0.0;
-                String currency = "EUR"; // Default
+                String currency = "BGN"; // Default
                 boolean currencyFound = false;
 
                 Log.i(TAG, "[CalcSelectedMonthInterest] onDataChange. Snapshot exists: " + dataSnapshot.exists() + ", Children in range: " + dataSnapshot.getChildrenCount());

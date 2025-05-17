@@ -37,7 +37,7 @@ public class Transaction {
     public String getType() { return type; }
     public double getSavingsCalculated() { return savingsCalculated; }
     public long getTimestamp() { return timestamp; }
-    public String getCurrency() { return currency == null ? "EUR" : currency; } // Default currency if null
+    public String getCurrency() { return currency == null ? "BGN" : currency; } // Default currency if null
 
     public void setId(String id) { this.id = id; }
     public void setDescription(String description) { this.description = description; }

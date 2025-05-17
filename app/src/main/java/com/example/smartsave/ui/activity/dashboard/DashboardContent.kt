@@ -149,7 +149,7 @@ fun DashboardContent(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    String.format(Locale.getDefault(), "%.2f %s", totalSavings, transactions.firstOrNull()?.currency ?: "EUR"),
+                    String.format(Locale.getDefault(), "%.2f %s", totalSavings, transactions.firstOrNull()?.currency ?: "BGN"),
                     fontSize = 22.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
