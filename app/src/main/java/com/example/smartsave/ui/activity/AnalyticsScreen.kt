@@ -100,17 +100,6 @@ fun AnalyticsScreen(navController: NavController) {
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            AnalyticsCard(value = "750 lv", label = "Total Saved")
-            AnalyticsCard(value = "5 lv", label = "Interest Earned")
-            AnalyticsCard(value = "3%", label = "% of Revenue Saved")
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {
@@ -131,20 +120,30 @@ fun AnalyticsScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text("Monthly Breakdown", style = typography.titleMedium)
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Add Bar Chart
-        ChartCard {
-            BarChart()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            AnalyticsCard(value = "750 BGN", label = "Total Saved")
+            AnalyticsCard(value = "5 BGN", label = "This Month")
+            AnalyticsCard(value = "3", label = "Progress This Month")
         }
+
+
+//        Spacer(modifier = Modifier.height(24.dp))
+//
+//        Text("Monthly Breakdown", style = typography.titleMedium)
+//        Spacer(modifier = Modifier.height(8.dp))
+
+//        ChartCard {
+//            BarChart()
+//        }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Text("Savings Growth", style = typography.titleMedium)
         Spacer(modifier = Modifier.height(8.dp))
 
-// Add Line Chart
         ChartCard {
             LineChart()
         }
@@ -158,10 +157,12 @@ fun AnalyticsCard(value: String, label: String) {
 
     Box(
         modifier = Modifier
-            .size(width = 120.dp, height = 120.dp)
-            .background(colors.background, shape = RoundedCornerShape(12.dp))
-            .border(1.dp, colors.primary, shape = RoundedCornerShape(12.dp))
-            .padding(12.dp)
+            .size(width = 110.dp, height = 120.dp)
+            .background(
+                color = colors.surfaceVariant, // grey-ish background
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(16.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.Bottom,
@@ -169,20 +170,22 @@ fun AnalyticsCard(value: String, label: String) {
         ) {
             Text(
                 text = value,
-                style = typography.headlineSmall.copy( // bigger text
+                style = typography.headlineSmall.copy(
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = colors.onBackground
+                    color = colors.onSurface
                 )
             )
             Text(
                 text = label,
                 style = typography.bodySmall.copy(
-                    color = colors.onBackground.copy(alpha = 0.6f)
+                    color = colors.onSurface.copy(alpha = 0.7f)
                 )
             )
         }
     }
 }
+
 
 
 @Composable
@@ -359,117 +362,6 @@ fun ChartCard(content: @Composable () -> Unit) {
 }
 
 
-
-
-
-@Composable
-fun BarChart() {
-    val barValues = listOf(8000f, 6000f, 4000f, 7000f, 5000f, 6000f, 5000f, 9000f, 3000f)
-    val interestValues = listOf(1500f, 1000f, 500f, 1200f, 800f, 900f, 700f, 1300f, 400f)
-    val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep")
-    val maxDisplayValue = 10000f // For scaling
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text("48’079 lv", style = MaterialTheme.typography.headlineSmall)
-        Text("Profits", color = MaterialTheme.colorScheme.primary)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
-        ) {
-            // Y-axis labels with even vertical spacing (aligned with bar height only)
-            Column(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(bottom = 24.dp, end = 8.dp), // reserve space for months
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                listOf(10000, 8000, 6000, 4000, 2000, 0).forEach { label ->
-                    Text(
-                        "$label",
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.align(Alignment.End)
-                    )
-                }
-            }
-
-
-            // Bars and X-axis labels container
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Bottom,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Row(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.Bottom
-                ) {
-                    barValues.forEachIndexed { index, value ->
-                        val interest = interestValues.getOrNull(index) ?: 0f
-                        val baseValue = (value - interest).coerceAtLeast(0f)
-
-                        val baseHeightRatio = baseValue / maxDisplayValue
-                        val interestHeightRatio = interest / maxDisplayValue
-
-                        val baseHeight = (baseHeightRatio * 140).dp
-                        val interestHeight = (interestHeightRatio * 140).dp
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Bottom
-                        ) {
-                            // Base part of the bar
-                            Box(
-                                modifier = Modifier
-                                    .width(16.dp)
-                                    .height(baseHeight)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
-                                    )
-                            )
-                            // Interest part stacked on top
-                            Box(
-                                modifier = Modifier
-                                    .width(16.dp)
-                                    .height(interestHeight)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.secondary,
-                                        shape = RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp)
-                                    )
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    months.forEach { month ->
-                        Text(
-                            month,
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.width(24.dp),
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-
-
 @Composable
 fun LineChart() {
     val values = listOf(2_000f, 4_000f, 6_000f, 5_000f, 8_000f, 9_000f, 7_500f, 10_000f, 8_500f)
@@ -487,8 +379,8 @@ fun LineChart() {
     )
 
     Column {
-        Text("23’261 lv", style = MaterialTheme.typography.headlineSmall)
-        Text("+10% YoY", color = lineColor)
+        Text("23’261 BGN", style = MaterialTheme.typography.headlineSmall)
+        Text("For current year", color = lineColor)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -508,7 +400,6 @@ fun LineChart() {
                 }
             }
 
-            // Chart Canvas
             Box(modifier = Modifier.fillMaxSize()) {
                 Canvas(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp)) {
                     val spacing = size.width / (values.size - 1)
@@ -520,7 +411,6 @@ fun LineChart() {
                         Offset(x, y)
                     }
 
-                    // Fill path
                     val fillPath = Path().apply {
                         moveTo(points.first().x, height)
                         for (i in points.indices) {
@@ -537,7 +427,6 @@ fun LineChart() {
                     }
                     drawPath(fillPath, brush = fillGradient)
 
-                    // Stroke path
                     val strokePath = Path().apply {
                         moveTo(points.first().x, points.first().y)
                         for (i in 1 until points.size) {
@@ -549,7 +438,6 @@ fun LineChart() {
                     }
                     drawPath(strokePath, color = lineColor, style = Stroke(width = 4f, cap = StrokeCap.Round))
 
-                    // Points
                     points.forEach {
                         drawCircle(color = lineColor, radius = 6f, center = it)
                     }
@@ -572,6 +460,118 @@ fun LineChart() {
         }
     }
 }
+
+
+
+
+//@Composable
+//fun BarChart() {
+//    val barValues = listOf(8000f, 6000f, 4000f, 7000f, 5000f, 6000f, 5000f, 9000f, 3000f)
+//    val interestValues = listOf(1500f, 1000f, 500f, 1200f, 800f, 900f, 700f, 1300f, 400f)
+//    val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep")
+//    val maxDisplayValue = 10000f // For scaling
+//
+//    Column(modifier = Modifier.padding(16.dp)) {
+//        Text("48’079 BGN", style = MaterialTheme.typography.headlineSmall)
+//        Text("Profits", color = MaterialTheme.colorScheme.primary)
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(180.dp)
+//        ) {
+//            // Y-axis labels with even vertical spacing (aligned with bar height only)
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxHeight()
+//                    .padding(bottom = 24.dp, end = 8.dp), // reserve space for months
+//                verticalArrangement = Arrangement.SpaceBetween
+//            ) {
+//                listOf(10000, 8000, 6000, 4000, 2000, 0).forEach { label ->
+//                    Text(
+//                        "$label",
+//                        style = MaterialTheme.typography.labelSmall,
+//                        modifier = Modifier.align(Alignment.End)
+//                    )
+//                }
+//            }
+//
+//
+//            // Bars and X-axis labels container
+//            Column(
+//                modifier = Modifier.fillMaxSize(),
+//                verticalArrangement = Arrangement.Bottom,
+//                horizontalAlignment = Alignment.CenterHorizontally
+//            ) {
+//                Row(
+//                    modifier = Modifier
+//                        .weight(1f)
+//                        .fillMaxWidth(),
+//                    horizontalArrangement = Arrangement.SpaceEvenly,
+//                    verticalAlignment = Alignment.Bottom
+//                ) {
+//                    barValues.forEachIndexed { index, value ->
+//                        val interest = interestValues.getOrNull(index) ?: 0f
+//                        val baseValue = (value - interest).coerceAtLeast(0f)
+//
+//                        val baseHeightRatio = baseValue / maxDisplayValue
+//                        val interestHeightRatio = interest / maxDisplayValue
+//
+//                        val baseHeight = (baseHeightRatio * 140).dp
+//                        val interestHeight = (interestHeightRatio * 140).dp
+//
+//                        Column(
+//                            horizontalAlignment = Alignment.CenterHorizontally,
+//                            verticalArrangement = Arrangement.Bottom
+//                        ) {
+//                            // Base part of the bar
+//                            Box(
+//                                modifier = Modifier
+//                                    .width(16.dp)
+//                                    .height(baseHeight)
+//                                    .background(
+//                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+//                                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
+//                                    )
+//                            )
+//                            // Interest part stacked on top
+//                            Box(
+//                                modifier = Modifier
+//                                    .width(16.dp)
+//                                    .height(interestHeight)
+//                                    .background(
+//                                        color = MaterialTheme.colorScheme.secondary,
+//                                        shape = RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp)
+//                                    )
+//                            )
+//                        }
+//                    }
+//                }
+//
+//                Spacer(modifier = Modifier.height(8.dp))
+//
+//                Row(
+//                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+//                    horizontalArrangement = Arrangement.SpaceEvenly
+//                ) {
+//                    months.forEach { month ->
+//                        Text(
+//                            month,
+//                            style = MaterialTheme.typography.labelSmall,
+//                            modifier = Modifier.width(24.dp),
+//                        )
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+
+
+
+
 
 
 
