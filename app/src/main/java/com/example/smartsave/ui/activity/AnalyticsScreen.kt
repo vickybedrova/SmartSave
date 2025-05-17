@@ -72,7 +72,7 @@ fun monthNameToNumber(monthName: String): Int {
 data class ChartDataPoint(val label: String, val value: Float)
 
 @Composable
-fun AnalyticsScreen(navController: NavController) { // Removed totalSavings parameter
+fun AnalyticsScreen(navController: NavController) {
     val context = LocalContext.current
     val colors = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
@@ -111,7 +111,7 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
     val assumedAnnualInterestRateForProjection = 0.03 // 3%
 
 
-    LaunchedEffect(key1 = Unit) { // <<<< KEY IS Unit
+    LaunchedEffect(key1 = Unit) {
         isLoadingTotalSavings = true
         totalSavingsErrorMessage = null
         Log.d(
@@ -136,7 +136,6 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
     }
 
     LaunchedEffect(key1 = isLoadingTotalSavings) {
-        // Only proceed if total savings has finished loading (either success or error)
         if (!isLoadingTotalSavings) {
             if (totalSavingsValue > 0 && totalSavingsErrorMessage == null) {
                 // We still set isLoadingCompoundInterestSentence to true here to indicate THIS calculation is starting
@@ -154,26 +153,24 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
                                 futureValue
                             )
                             Log.i(TAG_ANALYTICS_SCREEN, "Success (CompoundProjection): $compoundInterestSentence")
-                            isLoadingCompoundInterestSentence = false // Calculation finished
+                            isLoadingCompoundInterestSentence = false
                         }
 
                         override fun onError(errorMessage: String) {
                             Log.e(TAG_ANALYTICS_SCREEN, "Error (CompoundProjection): $errorMessage")
                             compoundInterestSentence = "Could not calculate growth projection."
-                            isLoadingCompoundInterestSentence = false // Calculation finished (with error)
+                            isLoadingCompoundInterestSentence = false
                         }
                     }
                 )
             } else {
-                // Total savings is 0, or there was an error loading it, so no projection.
                 compoundInterestSentence = null
-                isLoadingCompoundInterestSentence = false // Not loading, nothing to project
+                isLoadingCompoundInterestSentence = false
                 Log.d(TAG_ANALYTICS_SCREEN, "Skipping compound projection: totalSavingsValue is 0 or error occurred.")
             }
         }
     }
 
-    // --- LaunchedEffect for "Earned from Interest" (runs when selectedMonth or selectedYear changes) ---
     LaunchedEffect(
         key1 = selectedMonth,
         key2 = selectedYear
@@ -247,7 +244,7 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
                             "Success (EarnedThisMonth - Income Savings) for $selectedMonth $selectedYear: $totalIncomeSavingsForMonth $currency"
                         )
                         earnedThisMonthValue = totalIncomeSavingsForMonth
-                        earnedThisMonthCurrency = currency // Use the currency from this calculation
+                        earnedThisMonthCurrency = currency
                         isLoadingEarnedThisMonth = false
                     }
 
@@ -274,7 +271,7 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
         }
     }
 
-    LaunchedEffect(key1 = selectedYear, key2 = selectedMonth) { // Recalculate if month/year changes
+    LaunchedEffect(key1 = selectedYear, key2 = selectedMonth) {
         isLoadingSavingsGrowth = true
         savingsGrowthErrorMessage = null
         Log.d(
@@ -284,7 +281,7 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
 
         val monthNumber = monthNameToNumber(selectedMonth)
         val yearNumber = selectedYear.toIntOrNull()
-        val numberOfMonthsForChart = 6 // Or 12, or make it configurable
+        val numberOfMonthsForChart = 6
 
         if (monthNumber != -1 && yearNumber != null) {
             SavingsCalculator.calculateMonthlySavingsGrowth(
@@ -307,7 +304,6 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
                                     null
                                 }
                             }
-                            // Set the header for the chart to the latest month's total savings
                             (monthlyData.lastOrNull()?.get("savings") as? Double)?.let {
                                 overallSavingsForChartHeader = it
                             }
@@ -340,11 +336,11 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
     }
 
 
-    val totalSavingsFormatted = if (isLoadingTotalSavings) "Loading..." // ...
+    val totalSavingsFormatted = if (isLoadingTotalSavings) "Loading..."
     else if (totalSavingsErrorMessage != null) "Error"
     else String.format(Locale.getDefault(), "%.2f EUR", totalSavingsValue)
 
-    val earnedFromInterestFormatted = if (isLoadingEarnedFromInterest) "Loading..." // ...
+    val earnedFromInterestFormatted = if (isLoadingEarnedFromInterest) "Loading..."
     else if (earnedFromInterestErrorMessage != null) "Error"
     else String.format(
         Locale.getDefault(),
@@ -353,7 +349,6 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
         earnedFromInterestCurrency
     )
 
-    // --- NEW Formatter for "Earned this month" (Income Savings) ---
     val earnedThisMonthFormatted = if (isLoadingEarnedThisMonth) "Loading..."
     else if (earnedThisMonthErrorMessage != null) "Error"
     else String.format(
@@ -371,7 +366,6 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
             .background(colors.background)
             .padding(24.dp)
     ) {
-        // ... (Title, Back button, Download button, MonthYearSelector - remain the same) ...
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -421,19 +415,19 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
                 selectedMonth = selectedMonth,
                 selectedYear = selectedYear,
                 onMonthSelected = {
-                    selectedMonth = it /* Potentially re-trigger calculations if needed */
+                    selectedMonth = it
                 },
                 onYearSelected = {
-                    selectedYear = it /* Potentially re-trigger calculations if needed */
+                    selectedYear = it
                 }
             )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        if (totalSavingsErrorMessage != null && !isLoadingTotalSavings) { /* ... */
+        if (totalSavingsErrorMessage != null && !isLoadingTotalSavings) {
         }
-        if (earnedFromInterestErrorMessage != null && !isLoadingEarnedFromInterest) { /* ... */
+        if (earnedFromInterestErrorMessage != null && !isLoadingEarnedFromInterest) {
         }
         if (earnedThisMonthErrorMessage != null && !isLoadingEarnedThisMonth) {
             Text(
@@ -513,13 +507,13 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Error loading chart data.", // Or use savingsGrowthErrorMessage
+                            text = "Error loading chart data.",
                             color = MaterialTheme.colorScheme.error,
                             textAlign = TextAlign.Center
                         )
                     }
                 }
-                else -> { // No error, but no data (savingsGrowthData is empty)
+                else -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -543,7 +537,7 @@ fun AnalyticsCard(value: String, label: String, modifier: Modifier = Modifier) {
 
     Box(
         modifier = modifier
-            .fillMaxHeight() // 👈 force it to match tallest sibling
+            .fillMaxHeight()
             .background(
                 color = colors.surfaceVariant,
                 shape = RoundedCornerShape(16.dp)
@@ -754,12 +748,10 @@ fun ChartCard(content: @Composable () -> Unit) {
 fun LineChart(
     chartDataPoints: List<ChartDataPoint>,
     headerValue: Double,
-    compoundInterestText: String?, // Parameter for the sentence
-    isLoadingCompoundInterestText: Boolean // Parameter for its loading state
+    compoundInterestText: String?, 
+    isLoadingCompoundInterestText: Boolean
 ) {
-    // The `when` block in AnalyticsScreen now handles the primary empty/loading state for the chart area.
-    // This composable can assume chartDataPoints might be empty if its parent decided to render it that way,
-    // but the most common case is it will have data.
+
 
     val values = chartDataPoints.map { it.value }
     val minY = remember(values) { values.minOrNull()?.let { if (it < 0f) it else 0f } ?: 0f }
