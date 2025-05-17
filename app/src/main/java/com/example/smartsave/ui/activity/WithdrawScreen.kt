@@ -7,13 +7,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -21,8 +21,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.smartsave.R
 import com.example.smartsave.ui.navigation.Screen
+import com.example.smartsave.ui.theme.black
 import com.example.smartsave.ui.theme.blue
 import com.example.smartsave.ui.theme.greyFieldBackground
 import com.google.firebase.auth.FirebaseAuth
@@ -145,25 +145,28 @@ fun WithdrawScreen(navController: NavController, viewModel: WithdrawViewModel = 
             .background(colors.background)
             .padding(horizontal = 24.dp, vertical = 32.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    painter = painterResource(id = R.drawable.baseline_arrow_circle_left_24),
+                    imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "Return",
-                    tint = blue
+                    tint = black
                 )
             }
+
+            Text(
+                text = "WITHDRAW SAVINGS",
+                fontSize = 20.sp,
+                color = blue,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.width(48.dp))
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "WITHDRAW SAVINGS",
-            fontSize = 20.sp,
-            color = blue,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
 
         Spacer(modifier = Modifier.height(32.dp))
 
