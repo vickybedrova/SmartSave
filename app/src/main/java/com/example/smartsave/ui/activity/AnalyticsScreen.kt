@@ -10,7 +10,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,7 +27,7 @@ import java.io.FileOutputStream
 import android.content.ContentValues
 import android.os.Build
 import android.provider.MediaStore
-
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -44,10 +43,9 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.smartsave.ui.theme.blue
-
 import java.text.SimpleDateFormat
-
 import android.util.Log
+import androidx.compose.material.icons.Icons
 import androidx.compose.ui.text.style.TextAlign
 import com.example.smartsave.util.SavingsCalculator
 import java.util.Calendar
@@ -70,6 +68,7 @@ fun monthNameToNumber(monthName: String): Int {
         -1 // Invalid month name
     }
 }
+
 data class ChartDataPoint(val label: String, val value: Float)
 
 @Composable
@@ -108,8 +107,12 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
     LaunchedEffect(key1 = Unit) { // <<<< KEY IS Unit
         isLoadingTotalSavings = true
         totalSavingsErrorMessage = null
-        Log.d(TAG_ANALYTICS_SCREEN, "LaunchedEffect (TotalSavings): Calling recalculateAndUpdatetotalSaved")
-        SavingsCalculator.recalculateAndUpdatetotalSaved(object : SavingsCalculator.CalculationCallback {
+        Log.d(
+            TAG_ANALYTICS_SCREEN,
+            "LaunchedEffect (TotalSavings): Calling recalculateAndUpdatetotalSaved"
+        )
+        SavingsCalculator.recalculateAndUpdatetotalSaved(object :
+            SavingsCalculator.CalculationCallback {
             override fun onSuccess(newTotalSaved: Double) {
                 Log.i(TAG_ANALYTICS_SCREEN, "Success (TotalSavings): $newTotalSaved")
                 totalSavingsValue = newTotalSaved
@@ -126,10 +129,16 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
     }
 
     // --- LaunchedEffect for "Earned from Interest" (runs when selectedMonth or selectedYear changes) ---
-    LaunchedEffect(key1 = selectedMonth, key2 = selectedYear) { // <<<< KEYS ARE selectedMonth, selectedYear
+    LaunchedEffect(
+        key1 = selectedMonth,
+        key2 = selectedYear
+    ) { // <<<< KEYS ARE selectedMonth, selectedYear
         isLoadingEarnedFromInterest = true
         earnedFromInterestErrorMessage = null
-        Log.d(TAG_ANALYTICS_SCREEN, "LaunchedEffect (EarnedInterest): Calculating for $selectedMonth $selectedYear")
+        Log.d(
+            TAG_ANALYTICS_SCREEN,
+            "LaunchedEffect (EarnedInterest): Calculating for $selectedMonth $selectedYear"
+        )
 
         val monthNumber = monthNameToNumber(selectedMonth)
         val yearNumber = selectedYear.toIntOrNull()
@@ -140,14 +149,20 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
                 monthNumber,
                 object : SavingsCalculator.SelectedMonthInterestCallback {
                     override fun onSuccess(totalInterestForMonth: Double, currency: String) {
-                        Log.i(TAG_ANALYTICS_SCREEN, "Success (EarnedInterest) for $selectedMonth $selectedYear: $totalInterestForMonth $currency")
+                        Log.i(
+                            TAG_ANALYTICS_SCREEN,
+                            "Success (EarnedInterest) for $selectedMonth $selectedYear: $totalInterestForMonth $currency"
+                        )
                         earnedFromInterestValue = totalInterestForMonth
                         earnedFromInterestCurrency = currency
                         isLoadingEarnedFromInterest = false
                     }
 
                     override fun onError(errorMessage: String) {
-                        Log.e(TAG_ANALYTICS_SCREEN, "Error (EarnedInterest) for $selectedMonth $selectedYear: $errorMessage")
+                        Log.e(
+                            TAG_ANALYTICS_SCREEN,
+                            "Error (EarnedInterest) for $selectedMonth $selectedYear: $errorMessage"
+                        )
                         earnedFromInterestValue = 0.0
                         earnedFromInterestErrorMessage = "Error loading interest: $errorMessage"
                         isLoadingEarnedFromInterest = false
@@ -155,7 +170,10 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
                 }
             )
         } else {
-            Log.e(TAG_ANALYTICS_SCREEN, "Invalid month or year for interest calc: $selectedMonth, $selectedYear")
+            Log.e(
+                TAG_ANALYTICS_SCREEN,
+                "Invalid month or year for interest calc: $selectedMonth, $selectedYear"
+            )
             earnedFromInterestErrorMessage = "Invalid date selected"
             isLoadingEarnedFromInterest = false
             earnedFromInterestValue = 0.0
@@ -165,7 +183,10 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
     LaunchedEffect(key1 = selectedMonth, key2 = selectedYear) {
         isLoadingEarnedThisMonth = true
         earnedThisMonthErrorMessage = null
-        Log.d(TAG_ANALYTICS_SCREEN, "LaunchedEffect (EarnedThisMonth - Income Savings): Calculating for $selectedMonth $selectedYear")
+        Log.d(
+            TAG_ANALYTICS_SCREEN,
+            "LaunchedEffect (EarnedThisMonth - Income Savings): Calculating for $selectedMonth $selectedYear"
+        )
 
         val monthNumber = monthNameToNumber(selectedMonth)
         val yearNumber = selectedYear.toIntOrNull()
@@ -176,22 +197,32 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
                 monthNumber,
                 object : SavingsCalculator.SelectedMonthIncomeSavingsCallback {
                     override fun onSuccess(totalIncomeSavingsForMonth: Double, currency: String) {
-                        Log.i(TAG_ANALYTICS_SCREEN, "Success (EarnedThisMonth - Income Savings) for $selectedMonth $selectedYear: $totalIncomeSavingsForMonth $currency")
+                        Log.i(
+                            TAG_ANALYTICS_SCREEN,
+                            "Success (EarnedThisMonth - Income Savings) for $selectedMonth $selectedYear: $totalIncomeSavingsForMonth $currency"
+                        )
                         earnedThisMonthValue = totalIncomeSavingsForMonth
                         earnedThisMonthCurrency = currency // Use the currency from this calculation
                         isLoadingEarnedThisMonth = false
                     }
 
                     override fun onError(errorMessage: String) {
-                        Log.e(TAG_ANALYTICS_SCREEN, "Error (EarnedThisMonth - Income Savings) for $selectedMonth $selectedYear: $errorMessage")
+                        Log.e(
+                            TAG_ANALYTICS_SCREEN,
+                            "Error (EarnedThisMonth - Income Savings) for $selectedMonth $selectedYear: $errorMessage"
+                        )
                         earnedThisMonthValue = 0.0
-                        earnedThisMonthErrorMessage = "Error loading monthly earnings: $errorMessage"
+                        earnedThisMonthErrorMessage =
+                            "Error loading monthly earnings: $errorMessage"
                         isLoadingEarnedThisMonth = false
                     }
                 }
             )
         } else {
-            Log.e(TAG_ANALYTICS_SCREEN, "Invalid month or year for income savings calc: $selectedMonth, $selectedYear")
+            Log.e(
+                TAG_ANALYTICS_SCREEN,
+                "Invalid month or year for income savings calc: $selectedMonth, $selectedYear"
+            )
             earnedThisMonthErrorMessage = "Invalid date selected"
             isLoadingEarnedThisMonth = false
             earnedThisMonthValue = 0.0
@@ -201,7 +232,10 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
     LaunchedEffect(key1 = selectedYear, key2 = selectedMonth) { // Recalculate if month/year changes
         isLoadingSavingsGrowth = true
         savingsGrowthErrorMessage = null
-        Log.d(TAG_ANALYTICS_SCREEN, "LaunchedEffect (SavingsGrowth): Calculating for $selectedMonth $selectedYear")
+        Log.d(
+            TAG_ANALYTICS_SCREEN,
+            "LaunchedEffect (SavingsGrowth): Calculating for $selectedMonth $selectedYear"
+        )
 
         val monthNumber = monthNameToNumber(selectedMonth)
         val yearNumber = selectedYear.toIntOrNull()
@@ -214,7 +248,10 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
                 numberOfMonthsForChart,
                 object : SavingsCalculator.MonthlySavingsGrowthCallback {
                     override fun onSuccess(monthlyData: MutableList<MutableMap<String, Any>>) {
-                        Log.i(TAG_ANALYTICS_SCREEN, "Success (SavingsGrowth): Data received - ${monthlyData.size} points")
+                        Log.i(
+                            TAG_ANALYTICS_SCREEN,
+                            "Success (SavingsGrowth): Data received - ${monthlyData.size} points"
+                        )
                         if (monthlyData.isNotEmpty()) {
                             savingsGrowthData = monthlyData.mapNotNull { dataPoint ->
                                 val monthName = dataPoint["monthName"] as? String
@@ -246,7 +283,10 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
                 }
             )
         } else {
-            Log.e(TAG_ANALYTICS_SCREEN, "Invalid month/year for savings growth: $selectedMonth, $selectedYear")
+            Log.e(
+                TAG_ANALYTICS_SCREEN,
+                "Invalid month/year for savings growth: $selectedMonth, $selectedYear"
+            )
             savingsGrowthErrorMessage = "Invalid date for chart"
             isLoadingSavingsGrowth = false
             savingsGrowthData = emptyList()
@@ -261,12 +301,22 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
 
     val earnedFromInterestFormatted = if (isLoadingEarnedFromInterest) "Loading..." // ...
     else if (earnedFromInterestErrorMessage != null) "Error"
-    else String.format(Locale.getDefault(), "%.2f %s", earnedFromInterestValue, earnedFromInterestCurrency)
+    else String.format(
+        Locale.getDefault(),
+        "%.2f %s",
+        earnedFromInterestValue,
+        earnedFromInterestCurrency
+    )
 
     // --- NEW Formatter for "Earned this month" (Income Savings) ---
     val earnedThisMonthFormatted = if (isLoadingEarnedThisMonth) "Loading..."
     else if (earnedThisMonthErrorMessage != null) "Error"
-    else String.format(Locale.getDefault(), "%.2f %s", earnedThisMonthValue, earnedThisMonthCurrency)
+    else String.format(
+        Locale.getDefault(),
+        "%.2f %s",
+        earnedThisMonthValue,
+        earnedThisMonthCurrency
+    )
 
 
     Column(
@@ -277,29 +327,27 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
             .padding(24.dp)
     ) {
         // ... (Title, Back button, Download button, MonthYearSelector - remain the same) ...
-        Text(
-            text = "ANALYTICS",
-            fontSize = 20.sp,
-            color = blue,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_arrow_circle_left_24),
-                        contentDescription = "Return"
-                    )
-                }
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
             }
+
+            Text(
+                text = "ANALYTICS",
+                fontSize = 20.sp,
+                color = blue,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 2.dp)
+            )
 
             IconButton(onClick = {
                 downloadScreenAsPdf(context, view)
@@ -310,8 +358,6 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -329,17 +375,21 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
             MonthYearSelector(
                 selectedMonth = selectedMonth,
                 selectedYear = selectedYear,
-                onMonthSelected = { selectedMonth = it /* Potentially re-trigger calculations if needed */ },
-                onYearSelected = { selectedYear = it /* Potentially re-trigger calculations if needed */ }
+                onMonthSelected = {
+                    selectedMonth = it /* Potentially re-trigger calculations if needed */
+                },
+                onYearSelected = {
+                    selectedYear = it /* Potentially re-trigger calculations if needed */
+                }
             )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Display error message for total savings if any
-        if (totalSavingsErrorMessage != null && !isLoadingTotalSavings) { /* ... */ }
-        if (earnedFromInterestErrorMessage != null && !isLoadingEarnedFromInterest) { /* ... */ }
-        // NEW error display for "Earned this month"
+        if (totalSavingsErrorMessage != null && !isLoadingTotalSavings) { /* ... */
+        }
+        if (earnedFromInterestErrorMessage != null && !isLoadingEarnedFromInterest) { /* ... */
+        }
         if (earnedThisMonthErrorMessage != null && !isLoadingEarnedThisMonth) {
             Text(
                 text = "Monthly Earnings Error: ${earnedThisMonthErrorMessage!!}",
@@ -359,38 +409,58 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            AnalyticsCard(value = totalSavingsFormatted, label = "Total saved")
-            AnalyticsCard(value = earnedFromInterestFormatted, label = "Earned from interest")
-            // Use the new dynamic value for "Earned this month"
-            AnalyticsCard(value = earnedThisMonthFormatted, label = "Earned this month")
+            AnalyticsCard(
+                value = totalSavingsFormatted,
+                label = "Total saved",
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            )
+            AnalyticsCard(
+                value = earnedFromInterestFormatted,
+                label = "Earned from interest",
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            )
+            AnalyticsCard(
+                value = earnedThisMonthFormatted,
+                label = "Earned this month",
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            )
         }
 
-
-        // ... (ChartCard with LineChart - remains the same) ...
         Spacer(modifier = Modifier.height(24.dp))
+
         Text("Savings Growth", style = typography.titleMedium)
+
         Spacer(modifier = Modifier.height(8.dp))
 
         ChartCard {
             when {
                 isLoadingSavingsGrowth -> {
-                    // Wrap CircularProgressIndicator in a Box that fills the ChartCard's content area
                     Box(
                         modifier = Modifier.fillMaxSize(), // Fill the space provided by ChartCard's inner Box
                         contentAlignment = Alignment.Center // Center content within this Box
                     ) {
-                        CircularProgressIndicator() // No Modifier.align needed here anymore
+                        CircularProgressIndicator()
                     }
                 }
+
                 savingsGrowthData.isNotEmpty() -> {
                     LineChart(
                         chartDataPoints = savingsGrowthData,
                         headerValue = overallSavingsForChartHeader
                     )
                 }
+
                 savingsGrowthErrorMessage != null -> {
                     // Wrap error Text in a Box
                     Box(
@@ -404,6 +474,7 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
                         )
                     }
                 }
+
                 else -> { // No error, but no data
                     // Wrap "No data" Text in a Box
                     Box(
@@ -422,16 +493,14 @@ fun AnalyticsScreen(navController: NavController) { // Removed totalSavings para
     }
 }
 
-// ... (AnalyticsCard, MonthYearSelector, downloadScreenAsPdf, ChartCard, LineChart composables remain the same) ...
-
 @Composable
-fun AnalyticsCard(value: String, label: String) {
+fun AnalyticsCard(value: String, label: String, modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
 
     Box(
-        modifier = Modifier
-            .size(width = 110.dp, height = 120.dp)
+        modifier = modifier
+            .fillMaxHeight() // 👈 force it to match tallest sibling
             .background(
                 color = colors.surfaceVariant,
                 shape = RoundedCornerShape(16.dp)
@@ -439,7 +508,7 @@ fun AnalyticsCard(value: String, label: String) {
             .padding(16.dp)
     ) {
         Column(
-            verticalArrangement = Arrangement.Bottom,
+            verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxSize()
         ) {
             Text(
@@ -448,19 +517,20 @@ fun AnalyticsCard(value: String, label: String) {
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = colors.onSurface
-                )
+                ),
+                maxLines = 1
             )
             Text(
                 text = label,
                 style = typography.bodySmall.copy(
                     color = colors.onSurface.copy(alpha = 0.7f)
-                )
+                ),
+                maxLines = 2,
+                softWrap = true
             )
         }
     }
 }
-
-
 
 @Composable
 fun MonthYearSelector(
@@ -494,7 +564,11 @@ fun MonthYearSelector(
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(selectedMonth)
-                Icon(Icons.Default.ArrowDropDown, contentDescription = "Select Month", tint = Color.White)
+                Icon(
+                    Icons.Default.ArrowDropDown,
+                    contentDescription = "Select Month",
+                    tint = Color.White
+                )
             }
 
             DropdownMenu(
@@ -526,7 +600,11 @@ fun MonthYearSelector(
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(selectedYear)
-                Icon(Icons.Default.ArrowDropDown, contentDescription = "Select Year", tint = Color.White)
+                Icon(
+                    Icons.Default.ArrowDropDown,
+                    contentDescription = "Select Year",
+                    tint = Color.White
+                )
             }
 
             DropdownMenu(
@@ -549,9 +627,6 @@ fun MonthYearSelector(
         }
     }
 }
-
-
-
 
 fun downloadScreenAsPdf(context: Context, view: View) {
     val bitmap = view.drawToBitmap()
@@ -591,7 +666,8 @@ fun downloadScreenAsPdf(context: Context, view: View) {
                 Toast.makeText(context, "Failed to create file", Toast.LENGTH_SHORT).show()
             }
         } else {
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val downloadsDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             if (!downloadsDir.exists()) downloadsDir.mkdirs()
 
             val file = File(downloadsDir, fileName)
@@ -642,234 +718,146 @@ fun LineChart(
         return
     }
 
-    // Determine min/max Y values from the data, or use defaults
     val values = chartDataPoints.map { it.value }
-    val minY = 0f // Or values.minOrNull()?.coerceAtLeast(0f) ?: 0f
-    val maxY = values.maxOrNull()?.coerceAtLeast(100f) ?: 10000f // Ensure maxY is at least a bit more than minY
+    val minY = 0f
+    val maxY = values.maxOrNull()?.coerceAtLeast(100f) ?: 10000f
     val monthLabels = chartDataPoints.map { it.label }
 
-    val lineColor = MaterialTheme.colorScheme.primary
+    val lineColor = blue
     val fillGradient = Brush.verticalGradient(
         colors = listOf(lineColor.copy(alpha = 0.3f), Color.Transparent)
     )
-
     Column {
-        // Use the dynamic header value
-        Text(String.format(Locale.getDefault(), "%.2f EUR", headerValue), style = MaterialTheme.typography.headlineSmall)
-        Text("Cumulative Savings", color = lineColor) // Changed subtitle
+        Column {
+            Text(
+                String.format(Locale.getDefault(), "%.2f EUR", headerValue),
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Text("Cumulative Savings", color = lineColor) // Changed subtitle
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-        Row(modifier = Modifier.fillMaxWidth().height(200.dp)) {
-            // Y-Axis Labels (Dynamically generate based on maxY)
-            Column(
-                modifier = Modifier.fillMaxHeight().padding(end = 4.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)) {
+                // Y-Axis Labels (Dynamically generate based on maxY)
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(end = 4.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    val numYLabels = 6
+                    for (i in (numYLabels - 1) downTo 0) {
+                        val labelValue =
+                            minY + (i.toFloat() / (numYLabels - 1).toFloat()) * (maxY - minY)
+                        Text(
+                            String.format(Locale.getDefault(), "%.0f", labelValue),
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                }
+
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Canvas(modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 8.dp)) {
+                        if (values.size < 2) return@Canvas
+
+                        val spacing = size.width / (values.size - 1).toFloat().coerceAtLeast(1f)
+                        val canvasHeight = size.height
+
+                        val points = values.mapIndexed { index, value ->
+                            val x = index * spacing
+                            val y =
+                                canvasHeight - ((value - minY) / (maxY - minY).coerceAtLeast(1f)) * canvasHeight
+                            Offset(x.coerceIn(0f, size.width), y.coerceIn(0f, canvasHeight))
+                        }
+
+                        val fillPath = Path().apply {
+                            moveTo(points.first().x, canvasHeight) // Start from bottom-left
+                            points.forEachIndexed { index, point ->
+                                if (index == 0) lineTo(point.x, point.y)
+                                else {
+                                    val prev = points[index - 1]
+                                    if (values.size > 2 && index < points.size) {
+                                        val prevPrev =
+                                            points.getOrElse(index - 2) { prev } // Control point 1
+                                        val next =
+                                            points.getOrElse(index + 1) { point }     // Control point 2
+                                        val c1x = prev.x + (point.x - prevPrev.x) / 6f
+                                        val c1y = prev.y + (point.y - prevPrev.y) / 6f
+                                        val c2x = point.x - (next.x - prev.x) / 6f
+                                        val c2y = point.y - (next.y - prev.y) / 6f
+                                        cubicTo(c1x, c1y, c2x, c2y, point.x, point.y)
+                                    } else {
+                                        lineTo(point.x, point.y)
+                                    }
+                                }
+                            }
+                            lineTo(points.last().x, canvasHeight)
+                            close()
+                        }
+                        drawPath(fillPath, brush = fillGradient)
+
+                        val strokePath = Path().apply {
+                            moveTo(points.first().x, points.first().y)
+                            points.forEachIndexed { index, point ->
+                                if (index > 0) {
+                                    val prev = points[index - 1]
+                                    if (values.size > 2 && index < points.size) {
+                                        val prevPrev = points.getOrElse(index - 2) { prev }
+                                        val next = points.getOrElse(index + 1) { point }
+                                        val c1x = prev.x + (point.x - prevPrev.x) / 6f
+                                        val c1y = prev.y + (point.y - prevPrev.y) / 6f
+                                        val c2x = point.x - (next.x - prev.x) / 6f
+                                        val c2y = point.y - (next.y - prev.y) / 6f
+                                        cubicTo(c1x, c1y, c2x, c2y, point.x, point.y)
+                                    } else {
+                                        lineTo(point.x, point.y)
+                                    }
+                                }
+                            }
+                        }
+                        drawPath(
+                            strokePath,
+                            color = lineColor,
+                            style = Stroke(width = 4f, cap = StrokeCap.Round)
+                        )
+
+                        points.forEach {
+                            drawCircle(color = lineColor, radius = 6f, center = it)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = (24.dp + 8.dp) /* Align with chart canvas padding */,
+                        end = 8.dp
+                    ),
+                horizontalArrangement = if (monthLabels.size > 1) Arrangement.SpaceBetween else Arrangement.Start
             ) {
-                val numYLabels = 6 // e.g., 0, 2000, 4000, 6000, 8000, 10000
-                for (i in (numYLabels - 1) downTo 0) {
-                    val labelValue = minY + (i.toFloat() / (numYLabels - 1).toFloat()) * (maxY - minY)
-                    Text(
-                        String.format(Locale.getDefault(), "%.0f", labelValue),
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
-            }
-
-            // Chart Canvas
-            Box(modifier = Modifier.fillMaxSize()) {
-                Canvas(modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp)) {
-                    if (values.size < 2) return@Canvas // Need at least 2 points to draw a line
-
-                    val spacing = size.width / (values.size - 1).toFloat().coerceAtLeast(1f)
-                    val canvasHeight = size.height
-
-                    val points = values.mapIndexed { index, value ->
-                        val x = index * spacing
-                        val y = canvasHeight - ((value - minY) / (maxY - minY).coerceAtLeast(1f)) * canvasHeight
-                        Offset(x.coerceIn(0f, size.width), y.coerceIn(0f, canvasHeight))
-                    }
-
-                    // Draw Fill Path
-                    val fillPath = Path().apply {
-                        moveTo(points.first().x, canvasHeight) // Start from bottom-left
-                        points.forEachIndexed { index, point ->
-                            if (index == 0) lineTo(point.x, point.y)
-                            else {
-                                val prev = points[index-1]
-                                // Using cubic Bézier for smoother curves if more than 2 points
-                                if (values.size > 2 && index < points.size ) {
-                                    val prevPrev = points.getOrElse(index - 2) { prev } // Control point 1
-                                    val next = points.getOrElse(index + 1) { point }     // Control point 2
-                                    val c1x = prev.x + (point.x - prevPrev.x) / 6f
-                                    val c1y = prev.y + (point.y - prevPrev.y) / 6f
-                                    val c2x = point.x - (next.x - prev.x) / 6f
-                                    val c2y = point.y - (next.y - prev.y) / 6f
-                                    cubicTo(c1x, c1y, c2x, c2y, point.x, point.y)
-                                } else { // simple lineTo for 2 points or last segment
-                                    lineTo(point.x, point.y)
-                                }
-                            }
-                        }
-                        lineTo(points.last().x, canvasHeight) // End at bottom-right
-                        close()
-                    }
-                    drawPath(fillPath, brush = fillGradient)
-
-                    // Draw Stroke Path
-                    val strokePath = Path().apply {
-                        moveTo(points.first().x, points.first().y)
-                        points.forEachIndexed { index, point ->
-                            if (index > 0) {
-                                val prev = points[index-1]
-                                if (values.size > 2 && index < points.size) {
-                                    val prevPrev = points.getOrElse(index - 2) { prev }
-                                    val next = points.getOrElse(index + 1) { point }
-                                    val c1x = prev.x + (point.x - prevPrev.x) / 6f
-                                    val c1y = prev.y + (point.y - prevPrev.y) / 6f
-                                    val c2x = point.x - (next.x - prev.x) / 6f
-                                    val c2y = point.y - (next.y - prev.y) / 6f
-                                    cubicTo(c1x, c1y, c2x, c2y, point.x, point.y)
-                                } else {
-                                    lineTo(point.x, point.y)
-                                }
-                            }
-                        }
-                    }
-                    drawPath(strokePath, color = lineColor, style = Stroke(width = 4f, cap = StrokeCap.Round))
-
-                    // Draw Circles at data points
-                    points.forEach {
-                        drawCircle(color = lineColor, radius = 6f, center = it)
-                    }
+                monthLabels.forEach {
+                    Text(it, style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // X-Axis Labels (Month Labels)
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(start = (24.dp + 8.dp) /* Align with chart canvas padding */, end = 8.dp),
-            horizontalArrangement = if (monthLabels.size > 1) Arrangement.SpaceBetween else Arrangement.Start
-        ) {
-            monthLabels.forEach {
-                Text(it, style = MaterialTheme.typography.labelSmall)
-            }
-        }
+        Text(
+            text = "Leave €842 and let them grow. Get back €858.84 in just 6 months.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
-
-
-
-
-//@Composable
-//fun BarChart() {
-//    val barValues = listOf(8000f, 6000f, 4000f, 7000f, 5000f, 6000f, 5000f, 9000f, 3000f)
-//    val interestValues = listOf(1500f, 1000f, 500f, 1200f, 800f, 900f, 700f, 1300f, 400f)
-//    val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep")
-//    val maxDisplayValue = 10000f // For scaling
-//
-//    Column(modifier = Modifier.padding(16.dp)) {
-//        Text("48’079 BGN", style = MaterialTheme.typography.headlineSmall)
-//        Text("Profits", color = MaterialTheme.colorScheme.primary)
-//
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(180.dp)
-//        ) {
-//            // Y-axis labels with even vertical spacing (aligned with bar height only)
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxHeight()
-//                    .padding(bottom = 24.dp, end = 8.dp), // reserve space for months
-//                verticalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                listOf(10000, 8000, 6000, 4000, 2000, 0).forEach { label ->
-//                    Text(
-//                        "$label",
-//                        style = MaterialTheme.typography.labelSmall,
-//                        modifier = Modifier.align(Alignment.End)
-//                    )
-//                }
-//            }
-//
-//
-//            // Bars and X-axis labels container
-//            Column(
-//                modifier = Modifier.fillMaxSize(),
-//                verticalArrangement = Arrangement.Bottom,
-//                horizontalAlignment = Alignment.CenterHorizontally
-//            ) {
-//                Row(
-//                    modifier = Modifier
-//                        .weight(1f)
-//                        .fillMaxWidth(),
-//                    horizontalArrangement = Arrangement.SpaceEvenly,
-//                    verticalAlignment = Alignment.Bottom
-//                ) {
-//                    barValues.forEachIndexed { index, value ->
-//                        val interest = interestValues.getOrNull(index) ?: 0f
-//                        val baseValue = (value - interest).coerceAtLeast(0f)
-//
-//                        val baseHeightRatio = baseValue / maxDisplayValue
-//                        val interestHeightRatio = interest / maxDisplayValue
-//
-//                        val baseHeight = (baseHeightRatio * 140).dp
-//                        val interestHeight = (interestHeightRatio * 140).dp
-//
-//                        Column(
-//                            horizontalAlignment = Alignment.CenterHorizontally,
-//                            verticalArrangement = Arrangement.Bottom
-//                        ) {
-//                            // Base part of the bar
-//                            Box(
-//                                modifier = Modifier
-//                                    .width(16.dp)
-//                                    .height(baseHeight)
-//                                    .background(
-//                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-//                                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
-//                                    )
-//                            )
-//                            // Interest part stacked on top
-//                            Box(
-//                                modifier = Modifier
-//                                    .width(16.dp)
-//                                    .height(interestHeight)
-//                                    .background(
-//                                        color = MaterialTheme.colorScheme.secondary,
-//                                        shape = RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp)
-//                                    )
-//                            )
-//                        }
-//                    }
-//                }
-//
-//                Spacer(modifier = Modifier.height(8.dp))
-//
-//                Row(
-//                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-//                    horizontalArrangement = Arrangement.SpaceEvenly
-//                ) {
-//                    months.forEach { month ->
-//                        Text(
-//                            month,
-//                            style = MaterialTheme.typography.labelSmall,
-//                            modifier = Modifier.width(24.dp),
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
-
-
 
 
 
