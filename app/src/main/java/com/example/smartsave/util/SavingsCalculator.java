@@ -74,8 +74,8 @@ public class SavingsCalculator {
                         switch (type) {
                             case "INCOME":
                             case "EXPENSE": // Assuming EXPENSE also contributes via savingsCalculated
-                                //newTotalSaved += transaction.getSavingsCalculated();
-                                //Log.d(TAG, "    " + type + ": Added savingsCalculated " + transaction.getSavingsCalculated() + ". Current Sum: " + newTotalSaved);
+                                newTotalSaved += transaction.getSavingsCalculated();
+                                Log.d(TAG, "    " + type + ": Added savingsCalculated " + transaction.getSavingsCalculated() + ". Current Sum: " + newTotalSaved);
                                 break;
                             case "WITHDRAW":
                                 newTotalSaved -= transaction.getAmount();
@@ -260,18 +260,18 @@ public class SavingsCalculator {
 
                 for (DataSnapshot txSnapshot : dataSnapshot.getChildren()) {
                     Transaction transaction = txSnapshot.getValue(Transaction.class);
-//                    Log.d(TAG, "[CalcProgress]   Processing Tx ID: " + txSnapshot.getKey() +
-//                            ", Type: " + (transaction != null ? transaction.getType() : "N/A") +
-//                            ", Amount: " + (transaction != null ? transaction.getAmount() : "N/A") +
-//                            ", SavingsCalculated: " + (transaction != null ? transaction.getSavingsCalculated() : "N/A") +
-//                            ", Timestamp: " + (transaction != null ? transaction.getTimestamp() : "N/A"));
+                    Log.d(TAG, "[CalcProgress]   Processing Tx ID: " + txSnapshot.getKey() +
+                            ", Type: " + (transaction != null ? transaction.getType() : "N/A") +
+                            ", Amount: " + (transaction != null ? transaction.getAmount() : "N/A") +
+                            ", SavingsCalculated: " + (transaction != null ? transaction.getSavingsCalculated() : "N/A") +
+                            ", Timestamp: " + (transaction != null ? transaction.getTimestamp() : "N/A"));
 
                     if (transaction != null) {
                         String type = transaction.getType() != null ? transaction.getType().toUpperCase() : "";
                         switch (type) {
                             case "INCOME":
-                                //totalProgress += transaction.getSavingsCalculated();
-                                //Log.d(TAG, "[CalcProgress]     +++ INCOME: Added savingsCalculated " + transaction.getSavingsCalculated() + ". Current Progress: " + totalProgress);
+                                totalProgress += transaction.getSavingsCalculated();
+                                Log.d(TAG, "[CalcProgress]     +++ INCOME: Added savingsCalculated " + transaction.getSavingsCalculated() + ". Current Progress: " + totalProgress);
                                 break;
                             case "INTEREST_PAYMENT":
                                 totalProgress += transaction.getAmount();

@@ -1,256 +1,326 @@
 package com.example.smartsave.ui.activity.dashboard
 
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.example.smartsave.DashboardContent
-import com.example.smartsave.data.RetrofitClient
 import com.example.smartsave.model.Transaction
-import com.example.smartsave.data.mappers.toDomainModel
 import com.example.smartsave.ui.navigation.Screen
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.ResponseBody
-import java.io.IOException
+import com.example.smartsave.util.SavingsCalculator
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.*
 import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
-import com.example.smartsave.data.TokenManager // <<< NEW >>> Import TokenManager
 
-private const val TAG_DASHBOARD_SCREEN = "DashboardScreenLogicAPI"
-
-// <<< REMOVED >>> API Token constants are no longer defined here globally.
-// private const val MYPOS_SESSION_TOKEN = "..."
-// private const val MYPOS_AUTHORIZATION_TOKEN = "..."
-private const val MYPOS_PAGE_SIZE = 50 // This can stay if it's a fixed preference
+private const val TAG_DASHBOARD_SCREEN = "DashboardScreenLogic"
 
 enum class TransactionFilter {
     ALL, TODAY, THIS_WEEK
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DashboardScreen(navController: NavController) {
     val context = LocalContext.current
+    val auth = remember { FirebaseAuth.getInstance() }
+    val database = remember {
+        FirebaseDatabase.getInstance("https://smartsave-e0e7b-default-rtdb.europe-west1.firebasedatabase.app/")
+    }
+    var currentAuthUser by remember { mutableStateOf(auth.currentUser) }
+
     var selectedTransactionFilter by remember { mutableStateOf(TransactionFilter.ALL) }
 
+    // States for data
     var transactionsList by remember { mutableStateOf<List<Transaction>>(emptyList()) }
-    var allFetchedTransactions by remember { mutableStateOf<List<Transaction>>(emptyList()) }
+    var totalSavings by remember { mutableStateOf(0.0) }
+    var savingsPercentage by remember { mutableStateOf(0.0) }
+    // ... (earnedThisMonth, progressThisMonth states remain the same) ...
+    var earnedThisMonth by remember { mutableStateOf(0.0) }
+    var earnedThisMonthCurrency by remember { mutableStateOf("EUR") }
+    var progressThisMonth by remember { mutableStateOf(0.0) }
+    var progressThisMonthCurrency by remember { mutableStateOf("EUR") }
+    var isSmartSaveActive by remember { mutableStateOf(true) } // Default, will be fetched
 
-    // Other data remains hardcoded for this step
-    val totalSavings by remember { mutableStateOf(1234.56) }
-    val savingsPercentage by remember { mutableStateOf(10.0) }
-    var isSmartSaveActive by remember { mutableStateOf(true) }
-    val earnedThisMonth by remember { mutableStateOf(25.50) }
-    val earnedThisMonthCurrency by remember { mutableStateOf("EUR") }
-    val progressThisMonth by remember { mutableStateOf(150.75) }
-    val progressThisMonthCurrency by remember { mutableStateOf("EUR") }
 
-    val isLoadingProfile by remember { mutableStateOf(false) }
-    var isLoadingTransactions by remember { mutableStateOf(true) } // Initially true
-    val isLoadingEarnedThisMonth by remember { mutableStateOf(false) }
-    val isLoadingProgressThisMonth by remember { mutableStateOf(false) }
+
+    // Granular Loading States
+    var isLoadingProfile by remember { mutableStateOf(true) }
+    var isLoadingTransactions by remember { mutableStateOf(true) } // This will now also depend on the filter
+    // ... (isLoadingEarnedThisMonth, isLoadingProgressThisMonth remain the same) ...
+    var isLoadingEarnedThisMonth by remember { mutableStateOf(true) }
+    var isLoadingProgressThisMonth by remember { mutableStateOf(true) }
     var isTogglingActiveState by remember { mutableStateOf(false) }
 
+
+
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val isLoadingOverall = isLoadingTransactions || isLoadingEarnedThisMonth || isLoadingProgressThisMonth || isLoadingProfile
 
-    val coroutineScope = rememberCoroutineScope()
+    val isLoadingOverall = isLoadingProfile || isLoadingTransactions || isLoadingEarnedThisMonth || isLoadingProgressThisMonth
 
-    // --- <<< NEW >>> Load Tokens ---
-    var sessionTokenState by remember { mutableStateOf<String?>(null) }
-    var authorizationHeaderState by remember { mutableStateOf<String?>(null) }
-    var tokensAreLoaded by remember { mutableStateOf(false) } // To track if token loading attempt is complete
+    // AuthStateListener DisposableEffect (remains the same)
+    DisposableEffect(key1 = auth) {
+        val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth -> /* ... */
+            val user = firebaseAuth.currentUser
+            Log.d(TAG_DASHBOARD_SCREEN, "AuthStateListener: User changed to: ${user?.uid}")
+            if (currentAuthUser?.uid != user?.uid) {
+                currentAuthUser = user
+            }
+        }
+        auth.addAuthStateListener(authStateListener)
+        Log.d(TAG_DASHBOARD_SCREEN, "AuthStateListener ADDED.")
+        onDispose {
+            auth.removeAuthStateListener(authStateListener)
+            Log.d(TAG_DASHBOARD_SCREEN, "AuthStateListener REMOVED.")
+        }
+    }
 
-    LaunchedEffect(Unit) { // Runs once when the composable enters composition
-        Log.d(TAG_DASHBOARD_SCREEN, "Attempting to load tokens from TokenManager.")
-        sessionTokenState = TokenManager.getSessionToken(context)
-        authorizationHeaderState = TokenManager.getAuthorizationHeader(context)
-        tokensAreLoaded = true // Mark that we've attempted to load tokens
-
-        if (sessionTokenState == null || authorizationHeaderState == null) {
-            Log.w(TAG_DASHBOARD_SCREEN, "Tokens not found after loading attempt. Navigating to Login.")
-            // Ensure navigation happens only once if tokens are truly missing
-            if (navController.currentDestination?.route != Screen.Login.route) {
+    // LaunchedEffect for user state changes (login/logout, initial data reset)
+    LaunchedEffect(key1 = currentAuthUser) {
+        Log.d(TAG_DASHBOARD_SCREEN, "LaunchedEffect triggered by currentAuthUser. UID: ${currentAuthUser?.uid}")
+        if (currentAuthUser == null) {
+            // ... (navigation to Login - remains the same) ...
+            Log.w(TAG_DASHBOARD_SCREEN, "currentAuthUser is null, navigating to Login.")
+            try {
                 navController.navigate(Screen.Login.route) {
                     popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     launchSingleTop = true
                 }
+                Log.i(TAG_DASHBOARD_SCREEN, "Navigation to Login screen initiated.")
+            } catch (e: Exception) {
+                Log.e(TAG_DASHBOARD_SCREEN, "Error navigating to Login: ${e.message}", e)
             }
         } else {
-            Log.i(TAG_DASHBOARD_SCREEN, "Tokens loaded successfully.")
+            // User is logged in, reset states (this will trigger DisposableEffects to fetch)
+            val userId = currentAuthUser!!.uid
+            Log.d(TAG_DASHBOARD_SCREEN, "User $userId detected. Resetting loading states and data.")
+            isLoadingProfile = true
+            isLoadingTransactions = true // Will be set by transactions DisposableEffect
+            isLoadingEarnedThisMonth = true
+            isLoadingProgressThisMonth = true
+            errorMessage = null
+            transactionsList = emptyList() // Clear previous list
+            totalSavings = 0.0
+            savingsPercentage = 0.0
+            earnedThisMonth = 0.0
+            earnedThisMonthCurrency = "EUR"
+            progressThisMonth = 0.0
+            progressThisMonthCurrency = "EUR"
+            selectedTransactionFilter = TransactionFilter.ALL // Default to ALL on new user/refresh
         }
     }
-    // --- <<< END NEW >>> Load Tokens ---
 
-    val currentFilterAndSetTransactions by rememberUpdatedState(
-    ) { allTxs: List<Transaction>, filter: TransactionFilter ->
-        val shouldSetBriefLoading = !isLoadingTransactions && allTxs.isNotEmpty()
-        if (shouldSetBriefLoading) isLoadingTransactions = true
+    // Data fetching DisposableEffects
+    currentAuthUser?.let { user ->
+        val userId = user.uid
+        val userProfileRef = database.reference.child("smartSaveProfile").child(userId)
 
-        val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-        val filtered = when (filter) {
-            TransactionFilter.TODAY -> {
-                calendar.set(Calendar.HOUR_OF_DAY, 0); calendar.set(Calendar.MINUTE, 0); calendar.set(Calendar.SECOND, 0); calendar.set(Calendar.MILLISECOND, 0)
-                val startTodayTimestamp = calendar.timeInMillis
-                calendar.set(Calendar.HOUR_OF_DAY, 23); calendar.set(Calendar.MINUTE, 59); calendar.set(Calendar.SECOND, 59); calendar.set(Calendar.MILLISECOND, 999)
-                val endTodayTimestamp = calendar.timeInMillis
-                allTxs.filter { it.timestamp in startTodayTimestamp..endTodayTimestamp }
-            }
-            TransactionFilter.THIS_WEEK -> {
-                val tempCalEnd = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-                tempCalEnd.set(Calendar.HOUR_OF_DAY, 23); tempCalEnd.set(Calendar.MINUTE, 59); tempCalEnd.set(Calendar.SECOND, 59); tempCalEnd.set(Calendar.MILLISECOND, 999)
-                val endOfWeekTimestamp = tempCalEnd.timeInMillis
-                val tempCalStart = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-                tempCalStart.set(Calendar.DAY_OF_WEEK, tempCalStart.firstDayOfWeek)
-                tempCalStart.set(Calendar.HOUR_OF_DAY, 0); tempCalStart.set(Calendar.MINUTE, 0); tempCalStart.set(Calendar.SECOND, 0); tempCalStart.set(Calendar.MILLISECOND, 0)
-                val startOfWeekTimestamp = tempCalStart.timeInMillis
-                allTxs.filter { it.timestamp in startOfWeekTimestamp..endOfWeekTimestamp }
-            }
-            TransactionFilter.ALL -> allTxs
-        }
-        transactionsList = filtered.sortedByDescending { it.timestamp }
-        Log.d(TAG_DASHBOARD_SCREEN, "Applied filter $filter. Result count: ${transactionsList.size}")
-
-        if (shouldSetBriefLoading) isLoadingTransactions = false
-    }
-
-    // --- <<< MODIFIED >>> API Fetching Logic - Keyed to dynamically loaded tokens ---
-    LaunchedEffect(key1 = sessionTokenState, key2 = authorizationHeaderState, key3 = tokensAreLoaded) {
-        if (!tokensAreLoaded) {
-            // Still waiting for the initial token load attempt to complete.
-            // isLoadingTransactions should remain true or be set by the token loader.
-            Log.d(TAG_DASHBOARD_SCREEN, "Tokens not loaded yet, API call deferred.")
-            // Ensure isLoadingTransactions reflects this uncertainty until tokens are confirmed
-            if (!isLoadingTransactions) isLoadingTransactions = true
-            return@LaunchedEffect
-        }
-
-        if (sessionTokenState == null || authorizationHeaderState == null) {
-            Log.w(TAG_DASHBOARD_SCREEN, "Tokens are missing. Cannot fetch transactions (API call block).")
-            if (errorMessage == null) { // Avoid overwriting a more specific error from token loading
-                errorMessage = "Session missing. Please log in."
-            }
-            isLoadingTransactions = false // No API call will be made
-            allFetchedTransactions = emptyList()
-            transactionsList = emptyList()
-            return@LaunchedEffect
-        }
-
-        Log.d(TAG_DASHBOARD_SCREEN, "Attempting to fetch transactions with loaded tokens.")
-        isLoadingTransactions = true
-        errorMessage = null
-        // Optionally clear lists, or let them persist if re-fetching on token change
-        // allFetchedTransactions = emptyList()
-        // transactionsList = emptyList()
-
-        coroutineScope.launch {
-            try {
-                // Use the state variables for tokens
-                val currentSessionToken = sessionTokenState!!
-                val currentAuthHeader = authorizationHeaderState!!
-
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitClient.apiService.getTransactions(
-                        session = currentSessionToken,
-                        authorization = currentAuthHeader,
-                        page = 1,
-                        pageSize = MYPOS_PAGE_SIZE
-                    ).execute()
+        // Profile Data DisposableEffect (remains mostly the same)
+        DisposableEffect(key1 = userId) {
+            // ... (profile data fetching logic - no changes needed here for filters) ...
+            Log.d(TAG_DASHBOARD_SCREEN, "DisposableEffect (Profile): Setting up for user $userId")
+            isLoadingProfile = true
+            val profileListener = userProfileRef.addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    Log.d(TAG_DASHBOARD_SCREEN, "Profile data received for $userId.")
+                    totalSavings = snapshot.child("totalSaved").getValue(Double::class.java) ?: 0.0
+                    savingsPercentage = snapshot.child("savingsPercentage").getValue(Double::class.java) ?: 0.0
+                    isLoadingProfile = false
                 }
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e(TAG_DASHBOARD_SCREEN, "Profile data onCancelled for $userId: ${error.message}", error.toException())
+                    errorMessage = (errorMessage ?: "") + "\nProfile load error."
+                    isLoadingProfile = false
+                }
+            })
+            onDispose { userProfileRef.removeEventListener(profileListener) }
+        }
 
-                if (response.isSuccessful) {
-                    val transactionResponse = response.body()
-                    if (transactionResponse != null) {
-                        Log.i(TAG_DASHBOARD_SCREEN, "API call successful. Items: ${transactionResponse.items.size}")
-                        val fetchedTxs = transactionResponse.items.map { it.toDomainModel() }
-                        allFetchedTransactions = fetchedTxs
-                    } else {
-                        Log.e(TAG_DASHBOARD_SCREEN, "API response body is null.")
-                        errorMessage = "Failed to parse transactions (empty API response)."
-                        allFetchedTransactions = emptyList()
-                    }
-                } else {
-                    val errorBodyString = response.errorBody()?.use { it.string() } ?: "Unknown API error"
-                    Log.e(TAG_DASHBOARD_SCREEN, "API Error ${response.code()}: $errorBodyString")
-                    errorMessage = "API Error ${response.code()}: Could not fetch transactions."
-                    allFetchedTransactions = emptyList()
-                    if (response.code() == 401 || response.code() == 403) { // Unauthorized or Forbidden
-                        Log.w(TAG_DASHBOARD_SCREEN, "Token might be invalid (401/403). Clearing tokens and navigating to Login.")
-                        TokenManager.clearTokens(context)
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                            launchSingleTop = true
+
+        // --- MODIFIED: DisposableEffect for Transactions List (reacts to filter) ---
+        DisposableEffect(key1 = userId, key2 = selectedTransactionFilter) { // Re-run if userId OR filter changes
+            Log.d(TAG_DASHBOARD_SCREEN, "DisposableEffect (Transactions): Setting up for user $userId, Filter: $selectedTransactionFilter")
+            isLoadingTransactions = true
+            transactionsList = emptyList() // Clear previous list when filter changes
+            errorMessage = null // Clear previous transaction-specific errors
+
+            val userTransactionsNodeRef = userProfileRef.child("transactions")
+            var query: Query = userTransactionsNodeRef.orderByChild("timestamp") // Default query
+
+            val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+            var filterMessage = "No transactions yet." // Default empty message
+
+            when (selectedTransactionFilter) {
+                TransactionFilter.TODAY -> {
+                    filterMessage = "No transactions from today."
+                    // Start of today
+                    calendar.set(Calendar.HOUR_OF_DAY, 0); calendar.set(Calendar.MINUTE, 0); calendar.set(Calendar.SECOND, 0); calendar.set(Calendar.MILLISECOND, 0)
+                    val startTodayTimestamp = calendar.timeInMillis
+                    // End of today
+                    calendar.set(Calendar.HOUR_OF_DAY, 23); calendar.set(Calendar.MINUTE, 59); calendar.set(Calendar.SECOND, 59); calendar.set(Calendar.MILLISECOND, 999)
+                    val endTodayTimestamp = calendar.timeInMillis
+                    query = userTransactionsNodeRef.orderByChild("timestamp")
+                        .startAt(startTodayTimestamp.toDouble())
+                        .endAt(endTodayTimestamp.toDouble())
+                    Log.d(TAG_DASHBOARD_SCREEN, "TODAY Filter: $startTodayTimestamp to $endTodayTimestamp")
+                }
+                TransactionFilter.THIS_WEEK -> {
+                    filterMessage = "No transactions from this week."
+                    // End of today (effectively end of this week for the query up to now)
+                    calendar.set(Calendar.HOUR_OF_DAY, 23); calendar.set(Calendar.MINUTE, 59); calendar.set(Calendar.SECOND, 59); calendar.set(Calendar.MILLISECOND, 999)
+                    val endOfWeekTimestamp = calendar.timeInMillis
+                    // Start of this week (e.g., Sunday or Monday depending on locale, let's use ISO standard: Monday)
+                    calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek) // Adjust if your week starts differently
+                    // For ISO standard (Monday as first day):
+                    // val isoCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")) // Fresh calendar for this
+                    // isoCalendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+                    // To ensure it's the *current* week's Monday, not a future/past one if today is Sunday:
+                    val tempCal = Calendar.getInstance(TimeZone.getTimeZone("UTC")) // Use current day
+                    tempCal.set(Calendar.DAY_OF_WEEK, tempCal.firstDayOfWeek) // Go to start of current week
+                    tempCal.set(Calendar.HOUR_OF_DAY, 0); tempCal.set(Calendar.MINUTE, 0); tempCal.set(Calendar.SECOND, 0); tempCal.set(Calendar.MILLISECOND, 0)
+                    val startOfWeekTimestamp = tempCal.timeInMillis
+
+                    query = userTransactionsNodeRef.orderByChild("timestamp")
+                        .startAt(startOfWeekTimestamp.toDouble())
+                        .endAt(endOfWeekTimestamp.toDouble())
+                    Log.d(TAG_DASHBOARD_SCREEN, "THIS_WEEK Filter: $startOfWeekTimestamp to $endOfWeekTimestamp")
+                }
+                TransactionFilter.ALL -> {
+                    // Query remains userTransactionsNodeRef.orderByChild("timestamp")
+                    Log.d(TAG_DASHBOARD_SCREEN, "ALL Filter selected.")
+                }
+            }
+
+            val transactionListListener = query.addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    Log.d(TAG_DASHBOARD_SCREEN, "Filtered Txs data received for $userId. Filter: $selectedTransactionFilter. Count: ${snapshot.childrenCount}")
+                    val newTransactions = mutableListOf<Transaction>()
+                    snapshot.children.forEach { data ->
+                        data.getValue(Transaction::class.java)?.let {
+                            it.id = data.key ?: ""
+                            newTransactions.add(it)
                         }
                     }
+                    transactionsList = newTransactions.reversed() // Newest first
+                    if (newTransactions.isEmpty() && selectedTransactionFilter != TransactionFilter.ALL) {
+                        // Set specific empty message if a filter is active and results are empty
+                        // This could be handled in DashboardContent too, but setting it here is an option
+                        // For now, let DashboardContent handle display based on empty list and filter
+                    }
+                    isLoadingTransactions = false
                 }
-            } catch (e: IOException) {
-                Log.e(TAG_DASHBOARD_SCREEN, "Network error: ${e.message}", e)
-                errorMessage = "Network error. Please check connection."
-                allFetchedTransactions = emptyList()
-            } catch (e: Exception) {
-                Log.e(TAG_DASHBOARD_SCREEN, "Unexpected error: ${e.message}", e)
-                errorMessage = "An unexpected error occurred."
-                allFetchedTransactions = emptyList()
-            } finally {
-                isLoadingTransactions = false
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e(TAG_DASHBOARD_SCREEN, "Filtered Txs onCancelled for $userId: ${error.message}", error.toException())
+                    errorMessage = (errorMessage ?: "") + "\nFailed to load transactions."
+                    isLoadingTransactions = false
+                }
+            })
+            onDispose {
+                Log.d(TAG_DASHBOARD_SCREEN, "DisposableEffect (Transactions): Removing listener for $userId, Filter: $selectedTransactionFilter")
+                query.removeEventListener(transactionListListener)
             }
         }
-    }
+        // --- END MODIFIED ---
 
-    // Effect to re-apply filter
-    LaunchedEffect(key1 = selectedTransactionFilter, key2 = allFetchedTransactions, key3 = tokensAreLoaded) {
-        if (tokensAreLoaded && sessionTokenState != null && authorizationHeaderState != null) {
-            // Only filter if tokens were loaded successfully and we have a valid session
-            Log.d(TAG_DASHBOARD_SCREEN, "Filter or base data changed. Re-filtering. Base count: ${allFetchedTransactions.size}")
-            currentFilterAndSetTransactions(allFetchedTransactions, selectedTransactionFilter)
-        } else if (tokensAreLoaded && (sessionTokenState == null || authorizationHeaderState == null)) {
-            // If tokens failed to load, ensure lists are empty
-            transactionsList = emptyList()
-            Log.d(TAG_DASHBOARD_SCREEN, "Tokens invalid/missing, ensuring transaction list is empty.")
+
+        // DisposableEffect for "Earned this month" (remains the same)
+        DisposableEffect(key1 = userId) {
+            // ... (Earned this month logic - no changes needed here for filters on main list) ...
+            Log.d(TAG_DASHBOARD_SCREEN, "DisposableEffect (EarnedMonth): Setting up for user $userId")
+            isLoadingEarnedThisMonth = true
+            SavingsCalculator.calculateInterestEarnedLastMonth(object : SavingsCalculator.InterestCalculationCallback {
+                override fun onSuccess(totalInterest: Double, currency: String) {
+                    Log.i(TAG_DASHBOARD_SCREEN, "SUCCESS 'Earned this month': $totalInterest $currency (User: $userId)")
+                    earnedThisMonth = totalInterest
+                    earnedThisMonthCurrency = currency
+                    isLoadingEarnedThisMonth = false
+                }
+                override fun onError(errorMsg: String) {
+                    Log.e(TAG_DASHBOARD_SCREEN, "ERROR 'Earned this month': $errorMsg (User: $userId)")
+                    errorMessage = (errorMessage ?: "") + "\nMonthly earnings error."
+                    isLoadingEarnedThisMonth = false
+                }
+            })
+            onDispose { /* No listener removal for single event */ }
+        }
+
+        // DisposableEffect for "Progress this month" (remains the same)
+        DisposableEffect(key1 = userId) {
+            // ... (Progress this month logic - no changes needed here for filters on main list) ...
+            Log.d(TAG_DASHBOARD_SCREEN, "DisposableEffect (ProgressMonth): Setting up for user $userId")
+            isLoadingProgressThisMonth = true
+            SavingsCalculator.calculateProgressThisMonth(object : SavingsCalculator.MonthlyProgressCallback {
+                override fun onSuccess(totalProgress: Double, currency: String) {
+                    Log.i(TAG_DASHBOARD_SCREEN, "SUCCESS 'Progress this month': $totalProgress $currency (User: $userId)")
+                    progressThisMonth = totalProgress
+                    progressThisMonthCurrency = currency
+                    isLoadingProgressThisMonth = false
+                }
+                override fun onError(errorMsg: String) {
+                    Log.e(TAG_DASHBOARD_SCREEN, "ERROR 'Progress this month': $errorMsg (User: $userId)")
+                    errorMessage = (errorMessage ?: "") + "\nMonthly progress error."
+                    isLoadingProgressThisMonth = false
+                }
+            })
+            onDispose { /* No listener removal for single event */ }
         }
     }
 
     DashboardContent(
+        // ... (other existing parameters: transactions, totalSavings, etc.)
         transactions = transactionsList,
         totalSavings = totalSavings,
         savingsPercentage = savingsPercentage,
         earnedThisMonthValue = String.format(Locale.getDefault(), "%.2f %s", earnedThisMonth, earnedThisMonthCurrency),
         progressThisMonthValue = String.format(Locale.getDefault(), "%.2f %s", progressThisMonth, progressThisMonthCurrency),
         selectedFilter = selectedTransactionFilter,
-        onFilterSelected = { newFilter ->
-            if (selectedTransactionFilter != newFilter) {
-                selectedTransactionFilter = newFilter
-            }
-        },
+        onFilterSelected = { newFilter -> selectedTransactionFilter = newFilter },
+
+        // --- NEW: Pass active state and toggle handler ---
         isSmartSaveActive = isSmartSaveActive,
         onToggleActiveState = {
-            if (isTogglingActiveState) return@DashboardContent
-            isTogglingActiveState = true
-            val newActiveState = !isSmartSaveActive
-            isSmartSaveActive = newActiveState
-            Toast.makeText(context, "SmartSave ${if (newActiveState) "Resumed" else "Paused"}", Toast.LENGTH_SHORT).show()
-            isTogglingActiveState = false
+            if (currentAuthUser == null || isTogglingActiveState) {
+                Log.w(TAG_DASHBOARD_SCREEN, "Toggle attempt ignored: no user or already toggling.")
+                return@DashboardContent
+            }
+            val userId = currentAuthUser!!.uid
+            val profileIsActiveRef = database.reference.child("smartSaveProfile").child(userId).child("isActive")
+
+            // --- Calculate new state based on current state ---
+            val currentLocalState = isSmartSaveActive
+            val newActiveStateToSetInFirebase = !currentLocalState
+
+            Log.d(TAG_DASHBOARD_SCREEN, "Attempting to toggle SmartSave from $currentLocalState to $newActiveStateToSetInFirebase for user $userId")
+            isTogglingActiveState = true // Set loading state now
+
+            // --- OPTIMISTICALLY UPDATE LOCAL STATE for faster UI response ---
+            isSmartSaveActive = newActiveStateToSetInFirebase
+            // --- END OPTIMISTIC UPDATE ---
+
+            profileIsActiveRef.setValue(newActiveStateToSetInFirebase)
+                .addOnSuccessListener {
+                    Log.i(TAG_DASHBOARD_SCREEN, "Firebase: SmartSave active state successfully set to $newActiveStateToSetInFirebase for $userId")
+                    // Local state is already optimistically updated.
+                    // The listener will eventually get this same value and confirm it.
+                    Toast.makeText(context, "SmartSave ${if (newActiveStateToSetInFirebase) "Resumed" else "Paused"}", Toast.LENGTH_SHORT).show()
+                    isTogglingActiveState = false
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG_DASHBOARD_SCREEN, "Firebase: Failed to update SmartSave active state for $userId", e)
+                    Toast.makeText(context, "Failed to update status: ${e.message}", Toast.LENGTH_SHORT).show()
+                    // --- REVERT OPTIMISTIC UPDATE ON FAILURE ---
+                    isSmartSaveActive = currentLocalState // Revert to the state before the toggle attempt
+                    // --- END REVERT ---
+                    isTogglingActiveState = false
+                }
         },
+        // --- END NEW ---
+
         isLoading = isLoadingOverall,
         errorMessage = errorMessage,
-        onLogout = {
-            Log.i(TAG_DASHBOARD_SCREEN, "Logout clicked. Clearing tokens and navigating to Login.")
-            TokenManager.clearTokens(context) // <<< MODIFIED >>> Use TokenManager to clear
-            Toast.makeText(context, "Logged out", Toast.LENGTH_SHORT).show()
-            // Ensure we navigate out of the dashboard cleanly
-            if (navController.currentDestination?.route != Screen.Login.route) {
-                navController.navigate(Screen.Login.route) {
-                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                    launchSingleTop = true
-                }
-            }
-        },
+        onLogout = { auth.signOut() },
         onWithdrawClicked = { navController.navigate(Screen.Withdraw.route) },
         onAdjustClicked = { navController.navigate(Screen.Setup.route) },
         onAnalyticsClicked = { navController.navigate(Screen.Analytics.route) }
