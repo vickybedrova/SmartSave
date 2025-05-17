@@ -51,7 +51,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
     var initialProfileFetched by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = currentUser) {
-        if (currentUser == null) { /* ... navigation to login ... */
+        if (currentUser == null) {
             Log.w(TAG_SETUP_SCREEN, "No user, navigating to login.")
             navController.navigate(Screen.Login.route) {
                 popUpTo(navController.graph.startDestinationId) { inclusive = true }
@@ -68,19 +68,31 @@ fun SmartSaveSetupScreen(navController: NavController) {
                     existingProfile = profile
                     profile?.let {
                         val loadedPercentage = it.savingsPercentage.toFloat()
-                        Log.d(TAG_SETUP_SCREEN, "Profile loaded. DB savingsPercentage: ${it.savingsPercentage}, converted toFloat: $loadedPercentage")
+                        Log.d(
+                            TAG_SETUP_SCREEN,
+                            "Profile loaded. DB savingsPercentage: ${it.savingsPercentage}, converted toFloat: $loadedPercentage"
+                        )
                         percentage = loadedPercentage
                     }
-                } else { /* ... no existing profile ... */
+                } else {
                     Log.d(TAG_SETUP_SCREEN, "No existing profile found for user $userId.")
                     existingProfile = null
                 }
                 isLoading = false
                 initialProfileFetched = true
             }
-            override fun onCancelled(error: DatabaseError) { /* ... error handling ... */
-                Log.e(TAG_SETUP_SCREEN, "Error fetching profile: ${error.message}", error.toException())
-                Toast.makeText(context, "Error fetching profile: ${error.message}", Toast.LENGTH_LONG).show()
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e(
+                    TAG_SETUP_SCREEN,
+                    "Error fetching profile: ${error.message}",
+                    error.toException()
+                )
+                Toast.makeText(
+                    context,
+                    "Error fetching profile: ${error.message}",
+                    Toast.LENGTH_LONG
+                ).show()
                 isLoading = false
                 initialProfileFetched = true
             }
@@ -88,17 +100,19 @@ fun SmartSaveSetupScreen(navController: NavController) {
         profileRef.addListenerForSingleValueEvent(listener)
     }
 
-    if (isLoading && !initialProfileFetched) { /* ... Loading UI ... */
+    if (isLoading && !initialProfileFetched) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
     } else {
         Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 32.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp, vertical = 32.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text( /* ... Title ... */
+                Text(
                     text = buildAnnotatedString {
                         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                             append(stringResource(R.string.customize_your))
@@ -112,13 +126,13 @@ fun SmartSaveSetupScreen(navController: NavController) {
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                Text( /* ... Description ... */
+                Text(
                     text = stringResource(R.string.smart_save_description),
                     style = typography.bodyMedium.copy(color = colors.onBackground.copy(alpha = 0.75f)),
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(32.dp))
-                Row( /* ... Percentage Label ... */
+                Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -136,9 +150,15 @@ fun SmartSaveSetupScreen(navController: NavController) {
                 Slider(
                     value = percentage,
                     onValueChange = { newValue ->
-                        Log.d(TAG_SETUP_SCREEN, "Slider onValueChange - raw newValue from slider: $newValue")
+                        Log.d(
+                            TAG_SETUP_SCREEN,
+                            "Slider onValueChange - raw newValue from slider: $newValue"
+                        )
                         percentage = newValue
-                        Log.d(TAG_SETUP_SCREEN, "Slider onValueChange - 'percentage' state updated to: $percentage")
+                        Log.d(
+                            TAG_SETUP_SCREEN,
+                            "Slider onValueChange - 'percentage' state updated to: $percentage"
+                        )
                     },
                     valueRange = 1f..15f,
                     steps = 13,
@@ -174,16 +194,36 @@ fun SmartSaveSetupScreen(navController: NavController) {
                 ClickableText(
                     text = annotatedText,
                     onClick = { offset ->
-                        annotatedText.getStringAnnotations(tag = "terms", start = offset, end = offset)
+                        annotatedText.getStringAnnotations(
+                            tag = "terms",
+                            start = offset,
+                            end = offset
+                        )
                             .firstOrNull()?.let { annotation ->
-                                Toast.makeText(context, "Open Terms: ${annotation.item}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "Open Terms: ${annotation.item}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
-                        annotatedText.getStringAnnotations(tag = "privacy", start = offset, end = offset)
+                        annotatedText.getStringAnnotations(
+                            tag = "privacy",
+                            start = offset,
+                            end = offset
+                        )
                             .firstOrNull()?.let { annotation ->
-                                Toast.makeText(context, "Open Privacy: ${annotation.item}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    context,
+                                    "Open Privacy: ${annotation.item}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                     },
-                    style = typography.bodySmall.copy(fontSize = 12.sp, textAlign = TextAlign.Center, lineHeight = 16.sp),
+                    style = typography.bodySmall.copy(
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                        lineHeight = 16.sp
+                    ),
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
@@ -191,7 +231,8 @@ fun SmartSaveSetupScreen(navController: NavController) {
             Button(
                 onClick = {
                     if (currentUser == null) {
-                        Toast.makeText(context, "Error: User not logged in.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Error: User not logged in.", Toast.LENGTH_SHORT)
+                            .show()
                         return@Button
                     }
                     isSaving = true
@@ -202,32 +243,62 @@ fun SmartSaveSetupScreen(navController: NavController) {
                     val percentageToSaveInt = percentage.roundToInt()
                     val percentageToSaveDouble = percentageToSaveInt.toDouble()
 
-                    Log.d(TAG_SETUP_SCREEN, "Save Clicked: Raw 'percentage' state (Float): $percentageToSaveFloat")
-                    Log.d(TAG_SETUP_SCREEN, "Save Clicked: Rounded 'percentage' state (Int): $percentageToSaveInt")
-                    Log.d(TAG_SETUP_SCREEN, "Save Clicked: Value being saved to Firebase (Double): $percentageToSaveDouble")
+                    Log.d(
+                        TAG_SETUP_SCREEN,
+                        "Save Clicked: Raw 'percentage' state (Float): $percentageToSaveFloat"
+                    )
+                    Log.d(
+                        TAG_SETUP_SCREEN,
+                        "Save Clicked: Rounded 'percentage' state (Int): $percentageToSaveInt"
+                    )
+                    Log.d(
+                        TAG_SETUP_SCREEN,
+                        "Save Clicked: Value being saved to Firebase (Double): $percentageToSaveDouble"
+                    )
 
                     val newSavingsPercentage = percentageToSaveDouble
 
                     if (existingProfile != null) {
-                        Log.d(TAG_SETUP_SCREEN, "Updating existing profile. Saving percentage: $newSavingsPercentage for user $userId")
+                        Log.d(
+                            TAG_SETUP_SCREEN,
+                            "Updating existing profile. Saving percentage: $newSavingsPercentage for user $userId"
+                        )
                         val updates = HashMap<String, Any>()
                         updates["savingsPercentage"] = newSavingsPercentage
                         profileRef.updateChildren(updates)
                             .addOnSuccessListener {
-                                Log.d(TAG_SETUP_SCREEN, "SmartSave percentage updated successfully to $newSavingsPercentage")
-                                Toast.makeText(context, "Savings percentage updated!", Toast.LENGTH_SHORT).show()
+                                Log.d(
+                                    TAG_SETUP_SCREEN,
+                                    "SmartSave percentage updated successfully to $newSavingsPercentage"
+                                )
+                                Toast.makeText(
+                                    context,
+                                    "Savings percentage updated!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 isSaving = false
                                 navController.navigate(Screen.Dashboard.route) {
                                     popUpTo(Screen.Login.route) { inclusive = true }
                                 }
                             }
-                            .addOnFailureListener { /* ... failure ... */
-                                Log.e(TAG_SETUP_SCREEN, "Failed to update SmartSave percentage for user $userId", it)
-                                Toast.makeText(context, "Failed to update settings: ${it.message}", Toast.LENGTH_LONG).show()
+                            .addOnFailureListener {
+                                Log.e(
+                                    TAG_SETUP_SCREEN,
+                                    "Failed to update SmartSave percentage for user $userId",
+                                    it
+                                )
+                                Toast.makeText(
+                                    context,
+                                    "Failed to update settings: ${it.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
                                 isSaving = false
                             }
                     } else {
-                        Log.d(TAG_SETUP_SCREEN, "Creating new profile. Percentage: $newSavingsPercentage for user $userId")
+                        Log.d(
+                            TAG_SETUP_SCREEN,
+                            "Creating new profile. Percentage: $newSavingsPercentage for user $userId"
+                        )
                         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                         val currentDate = sdf.format(Date())
                         val newStartDate = currentDate
@@ -240,26 +311,43 @@ fun SmartSaveSetupScreen(navController: NavController) {
                             true
                         )
                         profileRef.setValue(profileToSave)
-                            .addOnSuccessListener { /* ... success navigation ... */
-                                Log.d(TAG_SETUP_SCREEN, "SmartSave profile created successfully with percentage $newSavingsPercentage")
-                                Toast.makeText(context, "SmartSave settings saved!", Toast.LENGTH_SHORT).show()
+                            .addOnSuccessListener {
+                                Log.d(
+                                    TAG_SETUP_SCREEN,
+                                    "SmartSave profile created successfully with percentage $newSavingsPercentage"
+                                )
+                                Toast.makeText(
+                                    context,
+                                    "SmartSave settings saved!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 isSaving = false
                                 navController.navigate(Screen.Dashboard.route) {
                                     popUpTo(Screen.Login.route) { inclusive = true }
                                 }
                             }
-                            .addOnFailureListener { /* ... failure ... */
-                                Log.e(TAG_SETUP_SCREEN, "Failed to create SmartSave profile for user $userId", it)
-                                Toast.makeText(context, "Failed to save settings: ${it.message}", Toast.LENGTH_LONG).show()
+                            .addOnFailureListener {
+                                Log.e(
+                                    TAG_SETUP_SCREEN,
+                                    "Failed to create SmartSave profile for user $userId",
+                                    it
+                                )
+                                Toast.makeText(
+                                    context,
+                                    "Failed to save settings: ${it.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()
                                 isSaving = false
                             }
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
                 shape = RoundedCornerShape(32.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = blue),
                 enabled = !isSaving && initialProfileFetched
-            ) { /* ... Button Text ... */
+            ) {
                 if (isSaving) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
                 } else {

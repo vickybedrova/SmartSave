@@ -31,21 +31,61 @@ public class Transaction {
         this.currency = currency;
     }
 
-    public String getId() { return id; }
-    public String getDescription() { return description; }
-    public double getAmount() { return amount; }
-    public String getType() { return type; }
-    public double getSavingsCalculated() { return savingsCalculated; }
-    public long getTimestamp() { return timestamp; }
-    public String getCurrency() { return currency == null ? "BGN" : currency; } // Default currency if null
+    public String getId() {
+        return id;
+    }
 
-    public void setId(String id) { this.id = id; }
-    public void setDescription(String description) { this.description = description; }
-    public void setAmount(double amount) { this.amount = amount; }
-    public void setType(String type) { this.type = type; }
-    public void setSavingsCalculated(double savingsCalculated) { this.savingsCalculated = savingsCalculated; }
-    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
-    public void setCurrency(String currency) { this.currency = currency; }
+    public String getDescription() {
+        return description;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public double getSavingsCalculated() {
+        return savingsCalculated;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public String getCurrency() {
+        return currency == null ? "BGN" : currency;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setSavingsCalculated(double savingsCalculated) {
+        this.savingsCalculated = savingsCalculated;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
 
     @Exclude
     public String getFormattedDate(String format) {

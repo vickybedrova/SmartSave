@@ -36,7 +36,8 @@ class WithdrawViewModel : ViewModel() {
     private val _hasPendingWithdrawal = MutableStateFlow(false)
     val hasPendingWithdrawal: StateFlow<Boolean> = _hasPendingWithdrawal
 
-    private val db = FirebaseDatabase.getInstance("https://smartsave-e0e7b-default-rtdb.europe-west1.firebasedatabase.app/")
+    private val db =
+        FirebaseDatabase.getInstance("https://smartsave-e0e7b-default-rtdb.europe-west1.firebasedatabase.app/")
     private val auth = FirebaseAuth.getInstance()
 
     init {
@@ -74,7 +75,9 @@ class WithdrawViewModel : ViewModel() {
                 val totalSaved = snapshot.child("totalSaved").getValue(Double::class.java) ?: 0.0
 
                 val pendingSum = snapshot.child("transactions").children
-                    .filter { it.child("type").getValue(String::class.java) == "PENDING_WITHDRAWAL" }
+                    .filter {
+                        it.child("type").getValue(String::class.java) == "PENDING_WITHDRAWAL"
+                    }
                     .sumOf { it.child("amount").getValue(Double::class.java) ?: 0.0 }
 
                 val availableBalance = totalSaved + pendingSum
@@ -124,6 +127,7 @@ class WithdrawViewModel : ViewModel() {
         }, 24 * 60 * 60 * 1000)
     }
 }
+
 @Composable
 fun WithdrawScreen(navController: NavController, viewModel: WithdrawViewModel = viewModel()) {
     val context = LocalContext.current
@@ -173,7 +177,7 @@ fun WithdrawScreen(navController: NavController, viewModel: WithdrawViewModel = 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     displayAmount,
-                    fontSize = 22.sp, // Match dashboard
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = colors.onSurface
                 )
@@ -294,7 +298,7 @@ fun WithdrawScreen(navController: NavController, viewModel: WithdrawViewModel = 
                                 popUpTo(Screen.Withdraw.route) { inclusive = true }
                                 launchSingleTop = true
                             }
-                        }, 1600) // long enough for the toast to be seen
+                        }, 1600)
                     } else {
                         Toast.makeText(context, "Not enough available balance.", Toast.LENGTH_LONG)
                             .show()

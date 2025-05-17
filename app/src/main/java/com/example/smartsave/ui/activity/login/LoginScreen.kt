@@ -1,7 +1,6 @@
 package com.example.smartsave.ui.activity.login
 
 import android.content.Intent
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -125,33 +124,27 @@ fun LoginScreen(navController: NavController) {
 
                 auth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
-                        Log.d(TAG_LOGIN_SCREEN, "Firebase signIn task completed. Successful: ${task.isSuccessful}")
                         if (task.isSuccessful) {
                             val user = auth.currentUser
                             if (user != null) {
-                                Log.i(TAG_LOGIN_SCREEN, "User signed in: ${user.uid}. Calling checkUserProfileAndNavigate.")
                                 checkUserProfileAndNavigate(
                                     user = user,
                                     navController = navController,
                                     setErrorMessage = { msg ->
-                                        Log.d(TAG_LOGIN_SCREEN, "Setting error message from callback: $msg")
                                         errorMessage = msg
                                     },
                                     onNavigationAttempted = { navAttempted ->
-                                        Log.d(TAG_LOGIN_SCREEN, "onNavigationAttempted callback. Nav performed: $navAttempted. Setting isLoading = false.")
                                         isLoading = false
                                     }
                                 )
                             } else {
                                 isLoading = false
                                 errorMessage = "Login succeeded but user is null."
-                                Log.e(TAG_LOGIN_SCREEN, "Login task successful but currentUser is null.")
                             }
                         } else {
                             isLoading = false
                             val exceptionMessage = task.exception?.message ?: "Unknown error."
                             errorMessage = "Login failed: $exceptionMessage"
-                            Log.w(TAG_LOGIN_SCREEN, "Login task failed: $exceptionMessage", task.exception)
                         }
                     }
             },
@@ -172,7 +165,10 @@ fun LoginScreen(navController: NavController) {
             } else {
                 Text(
                     text = "Log In",
-                    style = typography.labelLarge.copy(fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    style = typography.labelLarge.copy(
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 )
             }
         }
@@ -208,59 +204,46 @@ private fun checkUserProfileAndNavigate(
     onNavigationAttempted: (Boolean) -> Unit
 ) {
     val userId = user.uid
-    Log.d(TAG_LOGIN_SCREEN, "checkUserProfileAndNavigate called for user: $userId.")
-
-    val db = FirebaseDatabase.getInstance("https://smartsave-e0e7b-default-rtdb.europe-west1.firebasedatabase.app/")
+    val db =
+        FirebaseDatabase.getInstance("https://smartsave-e0e7b-default-rtdb.europe-west1.firebasedatabase.app/")
     val profileRef = db.reference.child(SMART_SAVE_PROFILE_NODE).child(userId)
 
     profileRef.addListenerForSingleValueEvent(object : ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
-            Log.d(TAG_LOGIN_SCREEN, "onDataChange: Profile snapshot exists: ${dataSnapshot.exists()}")
             val route: String
             if (dataSnapshot.exists()) {
-                Log.i(TAG_LOGIN_SCREEN, "Profile exists. Navigating to Dashboard.")
                 route = Screen.Dashboard.route
-
-                Log.i(TAG_LOGIN_SCREEN, "Triggering initial totalSaved recalculation for user: $userId")
-                SavingsCalculator.recalculateAndUpdatetotalSaved(object : SavingsCalculator.CalculationCallback {
+                SavingsCalculator.recalculateAndUpdatetotalSaved(object :
+                    SavingsCalculator.CalculationCallback {
                     override fun onSuccess(newTotalSaved: Double) {
-                        Log.i(TAG_LOGIN_SCREEN, "Initial totalSaved calculation successful: $newTotalSaved for user $userId")
                     }
 
                     override fun onError(errorMessage: String) {
-                        Log.e(TAG_LOGIN_SCREEN, "Error during initial totalSaved calculation for $userId: $errorMessage")
                     }
                 })
 
             } else {
-                Log.i(TAG_LOGIN_SCREEN, "Profile does NOT exist. Navigating to Setup.")
                 route = Screen.Setup.route
             }
 
             try {
                 val currentDestination = navController.currentDestination?.route
-                Log.d(TAG_LOGIN_SCREEN, "Attempting to navigate to '$route'. Current destination: '$currentDestination'")
-
                 if (currentDestination == Screen.Login.route) {
                     navController.navigate(route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                         launchSingleTop = true
                     }
-                    Log.i(TAG_LOGIN_SCREEN, "Navigation to '$route' performed.")
                     onNavigationAttempted(true)
                 } else {
-                    Log.w(TAG_LOGIN_SCREEN, "Skipping navigation. Not on Login screen. Current: $currentDestination")
                     onNavigationAttempted(false)
                 }
             } catch (e: Exception) {
-                Log.e(TAG_LOGIN_SCREEN, "Navigation error: ${e.message}", e)
                 setErrorMessage("Navigation error. Please try again.")
                 onNavigationAttempted(false)
             }
         }
 
         override fun onCancelled(databaseError: DatabaseError) {
-            Log.e(TAG_LOGIN_SCREEN, "onCancelled: Database error: ${databaseError.message}", databaseError.toException())
             setErrorMessage("Error accessing profile: ${databaseError.message}")
             onNavigationAttempted(false)
         }

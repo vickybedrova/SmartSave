@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.smartsave.R
 import com.example.smartsave.ui.navigation.Screen
+import com.example.smartsave.ui.theme.blue
 
 @Composable
 fun LandingScreen(navController: NavController) {
@@ -47,7 +48,7 @@ fun LandingScreen(navController: NavController) {
                     text = stringResource(R.string.smartsave),
                     style = typography.headlineLarge,
                     textAlign = TextAlign.Center,
-                    color = colors.primary
+                    color = blue
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
@@ -88,7 +89,7 @@ fun LandingScreen(navController: NavController) {
                     }
                 },
                 shape = RoundedCornerShape(32.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
+                colors = ButtonDefaults.buttonColors(containerColor = blue),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
