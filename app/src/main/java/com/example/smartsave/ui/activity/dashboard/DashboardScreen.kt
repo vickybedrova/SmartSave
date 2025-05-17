@@ -161,7 +161,7 @@ fun DashboardScreen(navController: NavController) {
                         authorization = currentAuthHeader,
                         page = 1,
                         pageSize = MYPOS_PAGE_SIZE
-                    ) // <--- .execute() removed
+                    ).execute()
                 }
 
                 if (response.isSuccessful) {
