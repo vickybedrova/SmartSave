@@ -36,7 +36,8 @@ class WithdrawViewModel : ViewModel() {
     private val _hasPendingWithdrawal = MutableStateFlow(false)
     val hasPendingWithdrawal: StateFlow<Boolean> = _hasPendingWithdrawal
 
-    private val db = FirebaseDatabase.getInstance("https://smartsave-e0e7b-default-rtdb.europe-west1.firebasedatabase.app/")
+    private val db =
+        FirebaseDatabase.getInstance("https://smartsave-e0e7b-default-rtdb.europe-west1.firebasedatabase.app/")
     private val auth = FirebaseAuth.getInstance()
 
     init {
@@ -74,7 +75,9 @@ class WithdrawViewModel : ViewModel() {
                 val totalSaved = snapshot.child("totalSaved").getValue(Double::class.java) ?: 0.0
 
                 val pendingSum = snapshot.child("transactions").children
-                    .filter { it.child("type").getValue(String::class.java) == "PENDING_WITHDRAWAL" }
+                    .filter {
+                        it.child("type").getValue(String::class.java) == "PENDING_WITHDRAWAL"
+                    }
                     .sumOf { it.child("amount").getValue(Double::class.java) ?: 0.0 }
 
                 val availableBalance = totalSaved + pendingSum
@@ -124,6 +127,7 @@ class WithdrawViewModel : ViewModel() {
         }, 24 * 60 * 60 * 1000)
     }
 }
+
 @Composable
 fun WithdrawScreen(navController: NavController, viewModel: WithdrawViewModel = viewModel()) {
     val context = LocalContext.current

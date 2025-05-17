@@ -64,7 +64,7 @@ fun DashboardContent(
     onAdjustClicked: () -> Unit,
     onAnalyticsClicked: () -> Unit,
     pendingWithdrawalMessage: String?
-){
+) {
     val scrollState = rememberScrollState()
 
     Column(
@@ -149,7 +149,12 @@ fun DashboardContent(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    String.format(Locale.getDefault(), "%.2f %s", totalSavings, transactions.firstOrNull()?.currency ?: "BGN"),
+                    String.format(
+                        Locale.getDefault(),
+                        "%.2f %s",
+                        totalSavings,
+                        transactions.firstOrNull()?.currency ?: "BGN"
+                    ),
                     fontSize = 22.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
@@ -244,6 +249,7 @@ fun DashboardContent(
             isLoading -> {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
             }
+
             errorMessage != null -> {
                 Text(
                     "Error: $errorMessage",
@@ -252,6 +258,7 @@ fun DashboardContent(
                     textAlign = TextAlign.Center
                 )
             }
+
             transactions.isEmpty() && !isLoading -> {
                 val emptyMessage = when (selectedFilter) {
                     TransactionFilter.TODAY -> "No transactions from today."
@@ -265,6 +272,7 @@ fun DashboardContent(
                     textAlign = TextAlign.Center
                 )
             }
+
             else -> {
                 transactions.forEach { tx ->
                     TransactionCard(tx)
@@ -312,11 +320,19 @@ fun InfoCard(title: String, value: String) {
     Column(
         modifier = Modifier
             .widthIn(min = 140.dp)
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.shapes.medium)
+            .background(
+                MaterialTheme.colorScheme.surfaceContainerHighest,
+                MaterialTheme.shapes.medium
+            )
             .padding(12.dp)
     ) {
         Text(title, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
+        Text(
+            value,
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 
@@ -340,7 +356,9 @@ fun TransactionCard(tx: Transaction) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+        Column(modifier = Modifier
+            .weight(1f)
+            .padding(end = 8.dp)) {
             Text(
                 tx.description,
                 fontSize = 14.sp,

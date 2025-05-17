@@ -1,6 +1,5 @@
 package com.example.smartsave.ui.activity.welcome
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -78,7 +77,8 @@ fun WelcomeScreen(navController: NavController) {
         while (true) {
             delay(4000L)
             if (!pagerState.isScrollInProgress) {
-                val nextPage = if (pagerState.currentPage < slides.lastIndex) pagerState.currentPage + 1 else 0
+                val nextPage =
+                    if (pagerState.currentPage < slides.lastIndex) pagerState.currentPage + 1 else 0
                 coroutineScope.launch { pagerState.animateScrollToPage(nextPage) }
             }
         }

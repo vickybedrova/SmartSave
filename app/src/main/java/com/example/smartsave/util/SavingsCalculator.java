@@ -2,7 +2,9 @@ package com.example.smartsave.util;
 
 import android.icu.text.SimpleDateFormat;
 import android.util.Log;
+
 import androidx.annotation.NonNull;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -32,28 +34,33 @@ public class SavingsCalculator {
     // Callback for total saved calculation
     public interface CalculationCallback {
         void onSuccess(double newTotalSaved);
+
         void onError(String errorMessage);
     }
 
     // Callback for interest earned calculation
     public interface InterestCalculationCallback {
         void onSuccess(double totalInterestEarned, String currency); // Pass currency too
+
         void onError(String errorMessage);
     }
 
     // Callback for progress this month
     public interface MonthlyProgressCallback {
         void onSuccess(double totalProgress, String currency);
+
         void onError(String errorMessage);
     }
 
     public interface SelectedMonthInterestCallback {
         void onSuccess(double totalInterestForMonth, String currency);
+
         void onError(String errorMessage);
     }
 
     public interface SelectedMonthIncomeSavingsCallback {
         void onSuccess(double totalIncomeSavingsForMonth, String currency);
+
         void onError(String errorMessage);
     }
 
@@ -61,6 +68,7 @@ public class SavingsCalculator {
         // Returns a list of data points: Pair<MonthName (String), TotalSavings (Double)>
         // The list should be ordered chronologically (oldest month first)
         void onSuccess(List<Map<String, Object>> monthlyData);
+
         void onError(String errorMessage);
     }
 
@@ -111,7 +119,7 @@ public class SavingsCalculator {
                     // Return a list of zeros or handle as appropriate
                     List<Map<String, Object>> emptyGrowthData = new ArrayList<>();
                     Calendar monthIterator = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                    monthIterator.set(targetYear, targetMonth -1, 1); // Start from target month
+                    monthIterator.set(targetYear, targetMonth - 1, 1); // Start from target month
                     for (int i = 0; i < numberOfMonths; i++) {
                         Map<String, Object> monthPoint = new HashMap<>();
                         monthPoint.put("monthName", new SimpleDateFormat("MMM", Locale.ENGLISH).format(monthIterator.getTime()));
@@ -191,14 +199,14 @@ public class SavingsCalculator {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG, "[CalcGrowth] Failed to read transactions: " + databaseError.getMessage());
-                if (callback != null) callback.onError("Failed to read transactions for growth chart: " + databaseError.getMessage());
+                if (callback != null)
+                    callback.onError("Failed to read transactions for growth chart: " + databaseError.getMessage());
             }
         });
     }
 
 
-
-public static void calculateIncomeSavingsForSelectedMonth(
+    public static void calculateIncomeSavingsForSelectedMonth(
             int year,
             int month, // 1 for January, 2 for February, etc.
             SelectedMonthIncomeSavingsCallback callback
@@ -231,7 +239,7 @@ public static void calculateIncomeSavingsForSelectedMonth(
 
         Log.i(TAG, "[CalcSelectedMonthIncomeSavings] User: " + userId + ", Year: " + year + ", Month: " + month);
         Log.i(TAG, "[CalcSelectedMonthIncomeSavings] Period Start: " + startTimestamp + " (" + new java.util.Date(startTimestamp) + ")");
-        Log.i(TAG, "[CalcSelectedMonthIncomeSavings] Period End:   " + endTimestamp   + " (" + new java.util.Date(endTimestamp) + ")");
+        Log.i(TAG, "[CalcSelectedMonthIncomeSavings] Period End:   " + endTimestamp + " (" + new java.util.Date(endTimestamp) + ")");
 
         // 2. Reference transactions and Query
         DatabaseReference userTransactionsRef = FirebaseDatabase.getInstance(DB_URL)
@@ -284,7 +292,8 @@ public static void calculateIncomeSavingsForSelectedMonth(
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG, "[CalcSelectedMonthIncomeSavings] onCancelled: " + databaseError.getMessage(), databaseError.toException());
-                if (callback != null) callback.onError("Failed to read transactions for selected month's income savings: " + databaseError.getMessage());
+                if (callback != null)
+                    callback.onError("Failed to read transactions for selected month's income savings: " + databaseError.getMessage());
             }
         });
     }
@@ -347,7 +356,8 @@ public static void calculateIncomeSavingsForSelectedMonth(
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG, "Failed to read transactions for recalculation: " + databaseError.getMessage());
-                if (callback != null) callback.onError("Failed to read transactions: " + databaseError.getMessage());
+                if (callback != null)
+                    callback.onError("Failed to read transactions: " + databaseError.getMessage());
             }
         });
     }
@@ -367,7 +377,8 @@ public static void calculateIncomeSavingsForSelectedMonth(
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Failed to update totalSaved for user " + userId + ": " + e.getMessage());
-                    if (callback != null) callback.onError("Failed to update totalSaved: " + e.getMessage());
+                    if (callback != null)
+                        callback.onError("Failed to update totalSaved: " + e.getMessage());
                 });
     }
 
@@ -383,16 +394,22 @@ public static void calculateIncomeSavingsForSelectedMonth(
         String userId = currentUser.getUid();
 
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        calendar.set(Calendar.HOUR_OF_DAY, 23); calendar.set(Calendar.MINUTE, 59); calendar.set(Calendar.SECOND, 59); calendar.set(Calendar.MILLISECOND, 999);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MILLISECOND, 999);
         long endTimestamp = calendar.getTimeInMillis();
 
         calendar.add(Calendar.DAY_OF_YEAR, -30);
-        calendar.set(Calendar.HOUR_OF_DAY, 0); calendar.set(Calendar.MINUTE, 0); calendar.set(Calendar.SECOND, 0); calendar.set(Calendar.MILLISECOND, 0);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
         long startTimestamp = calendar.getTimeInMillis();
 
         Log.i(TAG, "[CalcInterest] User: " + userId);
         Log.i(TAG, "[CalcInterest] Start Timestamp: " + startTimestamp + " (" + new java.util.Date(startTimestamp) + ")"); // Use java.util.Date
-        Log.i(TAG, "[CalcInterest] End Timestamp:   " + endTimestamp   + " (" + new java.util.Date(endTimestamp) + ")");
+        Log.i(TAG, "[CalcInterest] End Timestamp:   " + endTimestamp + " (" + new java.util.Date(endTimestamp) + ")");
 
         DatabaseReference userTransactionsRef = FirebaseDatabase.getInstance(DB_URL)
                 .getReference(SMART_SAVE_PROFILE_NODE)
@@ -450,7 +467,8 @@ public static void calculateIncomeSavingsForSelectedMonth(
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG, "Failed to read transactions for monthly interest: " + databaseError.getMessage());
-                if (callback != null) callback.onError("Failed to read transactions for monthly interest: " + databaseError.getMessage());
+                if (callback != null)
+                    callback.onError("Failed to read transactions for monthly interest: " + databaseError.getMessage());
             }
         });
     }
@@ -468,16 +486,22 @@ public static void calculateIncomeSavingsForSelectedMonth(
 
         // 1. Determine Date Range (last 30 days for a rolling month)
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        calendar.set(Calendar.HOUR_OF_DAY, 23); calendar.set(Calendar.MINUTE, 59); calendar.set(Calendar.SECOND, 59); calendar.set(Calendar.MILLISECOND, 999);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MILLISECOND, 999);
         long endTimestamp = calendar.getTimeInMillis();
 
         calendar.add(Calendar.DAY_OF_YEAR, -30);
-        calendar.set(Calendar.HOUR_OF_DAY, 0); calendar.set(Calendar.MINUTE, 0); calendar.set(Calendar.SECOND, 0); calendar.set(Calendar.MILLISECOND, 0);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
         long startTimestamp = calendar.getTimeInMillis();
 
         Log.i(TAG, "[CalcProgress] User: " + userId);
         Log.i(TAG, "[CalcProgress] Period Start: " + startTimestamp + " (" + new java.util.Date(startTimestamp) + ")");
-        Log.i(TAG, "[CalcProgress] Period End:   " + endTimestamp   + " (" + new java.util.Date(endTimestamp) + ")");
+        Log.i(TAG, "[CalcProgress] Period End:   " + endTimestamp + " (" + new java.util.Date(endTimestamp) + ")");
 
         // 2. Reference transactions and Query
         DatabaseReference userTransactionsRef = FirebaseDatabase.getInstance(DB_URL)
@@ -546,7 +570,8 @@ public static void calculateIncomeSavingsForSelectedMonth(
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG, "[CalcProgress] onCancelled: " + databaseError.getMessage(), databaseError.toException());
-                if (callback != null) callback.onError("Failed to read transactions for monthly progress: " + databaseError.getMessage());
+                if (callback != null)
+                    callback.onError("Failed to read transactions for monthly progress: " + databaseError.getMessage());
             }
         });
     }
@@ -591,7 +616,7 @@ public static void calculateIncomeSavingsForSelectedMonth(
 
         Log.i(TAG, "[CalcSelectedMonthInterest] User: " + userId + ", Year: " + year + ", Month: " + month);
         Log.i(TAG, "[CalcSelectedMonthInterest] Period Start: " + startTimestamp + " (" + new java.util.Date(startTimestamp) + ")");
-        Log.i(TAG, "[CalcSelectedMonthInterest] Period End:   " + endTimestamp   + " (" + new java.util.Date(endTimestamp) + ")");
+        Log.i(TAG, "[CalcSelectedMonthInterest] Period End:   " + endTimestamp + " (" + new java.util.Date(endTimestamp) + ")");
 
         // 2. Reference transactions and Query
         DatabaseReference userTransactionsRef = FirebaseDatabase.getInstance(DB_URL)
@@ -616,7 +641,8 @@ public static void calculateIncomeSavingsForSelectedMonth(
 
                 if (!dataSnapshot.exists() || dataSnapshot.getChildrenCount() == 0) {
                     Log.i(TAG, "[CalcSelectedMonthInterest] No transactions found in the selected month/year for user " + userId);
-                    if (callback != null) callback.onSuccess(0.0, currency); // Return 0 if no transactions
+                    if (callback != null)
+                        callback.onSuccess(0.0, currency); // Return 0 if no transactions
                     return;
                 }
 
@@ -652,12 +678,12 @@ public static void calculateIncomeSavingsForSelectedMonth(
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.e(TAG, "[CalcSelectedMonthInterest] onCancelled: " + databaseError.getMessage(), databaseError.toException());
-                if (callback != null) callback.onError("Failed to read transactions for selected month's interest: " + databaseError.getMessage());
+                if (callback != null)
+                    callback.onError("Failed to read transactions for selected month's interest: " + databaseError.getMessage());
             }
         });
     }
     // --- END METHOD for "Interest for Selected Month" ---
-
 
 
 }
