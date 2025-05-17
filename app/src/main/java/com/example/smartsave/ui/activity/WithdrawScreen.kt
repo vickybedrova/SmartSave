@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,12 +32,16 @@ fun WithdrawScreen(navController: NavController) {
             .background(colors.background)
             .padding(horizontal = 24.dp, vertical = 32.dp)
     ) {
+        // Top navigation
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_arrow_circle_left_24),
-                    contentDescription = "Return"
-                )}
+                    contentDescription = "Return",
+                    tint = colors.primary
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "SmartSave",
                 style = typography.titleSmall.copy(fontSize = 16.sp),
@@ -46,18 +49,19 @@ fun WithdrawScreen(navController: NavController) {
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
+        // Title
         Text(
             text = "WITHDRAW SAVINGS",
-            style = typography.headlineSmall,
+            style = typography.headlineLarge.copy(lineHeight = 36.sp),
             color = colors.primary,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
+        Spacer(modifier = Modifier.height(32.dp))
 
-        Spacer(modifier = Modifier.height(24.dp))
-
+        // Total savings bubble
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -66,21 +70,34 @@ fun WithdrawScreen(navController: NavController) {
                 .border(width = 4.dp, color = colors.primary, shape = CircleShape)
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("700 lv", style = typography.headlineMedium)
-                Text("Total Savings", style = typography.bodySmall, color = colors.onBackground.copy(alpha = 0.6f))
+                Text(
+                    "700 BGN",
+                    style = typography.headlineMedium.copy(fontSize = 28.sp)
+                )
+                Text(
+                    "Total Savings",
+                    style = typography.bodySmall.copy(fontSize = 14.sp),
+                    color = colors.onBackground.copy(alpha = 0.6f)
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        // Label
         Text(
             text = "Enter Amount",
-            style = typography.bodyLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Medium),
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+            style = typography.bodyLarge.copy(
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                fontSize = 18.sp
+            ),
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            color = colors.onBackground
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
+        // Input fields
         Row(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
@@ -95,7 +112,11 @@ fun WithdrawScreen(navController: NavController) {
                     .border(1.dp, colors.outline, shape = RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text("BGN", style = typography.bodyMedium)
+                Text(
+                    "BGN",
+                    style = typography.bodyLarge.copy(fontSize = 16.sp),
+                    color = colors.onBackground
+                )
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -104,33 +125,41 @@ fun WithdrawScreen(navController: NavController) {
                 value = amount,
                 onValueChange = { amount = it },
                 singleLine = true,
-                placeholder = { Text("0.00", color = colors.onBackground.copy(alpha = 0.4f)) },
+                placeholder = {
+                    Text("0.00", color = colors.onBackground.copy(alpha = 0.4f))
+                },
                 modifier = Modifier
                     .width(160.dp)
                     .height(56.dp),
-                textStyle = typography.bodyLarge,
+                textStyle = typography.bodyLarge.copy(fontSize = 18.sp),
                 shape = RoundedCornerShape(12.dp)
             )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Info note
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
-            Icon(Icons.Default.Refresh, contentDescription = null, tint = colors.onBackground.copy(alpha = 0.6f))
+            Icon(
+                Icons.Default.Refresh,
+                contentDescription = null,
+                tint = colors.onBackground.copy(alpha = 0.6f)
+            )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "The money will leave the account in 24 hours",
-                style = typography.bodySmall,
+                style = typography.bodySmall.copy(fontSize = 14.sp),
                 color = colors.onBackground.copy(alpha = 0.6f)
             )
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
+        // Action Button
         Button(
             onClick = { /* Handle withdraw */ },
             modifier = Modifier
@@ -143,10 +172,12 @@ fun WithdrawScreen(navController: NavController) {
                 text = "Withdraw",
                 style = typography.labelLarge.copy(
                     fontSize = 20.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                    color = colors.onPrimary
-                )
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                ),
+                color = colors.onPrimary
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }

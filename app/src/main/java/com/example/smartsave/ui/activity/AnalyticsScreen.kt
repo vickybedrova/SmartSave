@@ -41,6 +41,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.material3.Text
+import androidx.compose.ui.text.font.FontWeight
+
 @Composable
 fun AnalyticsScreen(navController: NavController) {
     val context = LocalContext.current
@@ -107,8 +109,16 @@ fun AnalyticsScreen(navController: NavController) {
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
         ) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_calendar_month_24),
+                contentDescription = "Calendar",
+                tint = Color(0xFF2791E9),
+                modifier = Modifier
+                    .size(height = 40.dp, width = 40.dp) // Match Button height
+                    .padding(end = 8.dp)            )
             MonthYearSelector(
                 selectedMonth = selectedMonth,
                 selectedYear = selectedYear,
@@ -146,20 +156,32 @@ fun AnalyticsCard(value: String, label: String) {
 
     Box(
         modifier = Modifier
-            .size(width = 120.dp, height = 80.dp)
+            .size(width = 120.dp, height = 120.dp)
             .background(colors.background, shape = RoundedCornerShape(12.dp))
-            .border(1.dp, colors.primary.copy(alpha = 0.2f), shape = RoundedCornerShape(12.dp))
+            .border(1.dp, colors.primary, shape = RoundedCornerShape(12.dp))
             .padding(12.dp)
     ) {
         Column(
             verticalArrangement = Arrangement.Bottom,
             modifier = Modifier.fillMaxSize()
         ) {
-            Text(text = value, style = typography.bodyLarge.copy(color = colors.onBackground))
-            Text(text = label, style = typography.bodySmall.copy(color = colors.onBackground.copy(alpha = 0.6f)))
+            Text(
+                text = value,
+                style = typography.headlineSmall.copy( // bigger text
+                    fontWeight = FontWeight.Bold,
+                    color = colors.onBackground
+                )
+            )
+            Text(
+                text = label,
+                style = typography.bodySmall.copy(
+                    color = colors.onBackground.copy(alpha = 0.6f)
+                )
+            )
         }
     }
 }
+
 
 @Composable
 fun MonthYearSelector(
@@ -177,24 +199,36 @@ fun MonthYearSelector(
     var isMonthExpanded by remember { mutableStateOf(false) }
     var isYearExpanded by remember { mutableStateOf(false) }
 
+    val buttonColor = Color(0xFF2791E9)
+
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Month Dropdown
+        // Month Button
         Box {
-            OutlinedButton(onClick = { isMonthExpanded = true }) {
+            Button(
+                onClick = { isMonthExpanded = true },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = buttonColor,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
                 Text(selectedMonth)
-                Icon(Icons.Default.ArrowDropDown, contentDescription = "Select Month")
+                Icon(Icons.Default.ArrowDropDown, contentDescription = "Select Month", tint = Color.White)
             }
+
             DropdownMenu(
                 expanded = isMonthExpanded,
                 onDismissRequest = { isMonthExpanded = false },
-                modifier = Modifier.heightIn(max = 300.dp) // this allows internal scrolling
+                modifier = Modifier
+                    .background(buttonColor)
+                    .heightIn(max = 300.dp)
             ) {
                 months.forEach { month ->
                     DropdownMenuItem(
-                        text = { Text(month) },
+                        text = { Text(month, color = Color.White) },
                         onClick = {
                             onMonthSelected(month)
                             isMonthExpanded = false
@@ -204,20 +238,30 @@ fun MonthYearSelector(
             }
         }
 
-        // Year Dropdown
+        // Year Button
         Box {
-            OutlinedButton(onClick = { isYearExpanded = true }) {
+            Button(
+                onClick = { isYearExpanded = true },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = buttonColor,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
                 Text(selectedYear)
-                Icon(Icons.Default.ArrowDropDown, contentDescription = "Select Year")
+                Icon(Icons.Default.ArrowDropDown, contentDescription = "Select Year", tint = Color.White)
             }
+
             DropdownMenu(
                 expanded = isYearExpanded,
                 onDismissRequest = { isYearExpanded = false },
-                modifier = Modifier.heightIn(max = 200.dp)
+                modifier = Modifier
+                    .background(buttonColor)
+                    .heightIn(max = 200.dp)
             ) {
                 years.forEach { year ->
                     DropdownMenuItem(
-                        text = { Text(year) },
+                        text = { Text(year, color = Color.White) },
                         onClick = {
                             onYearSelected(year)
                             isYearExpanded = false
@@ -226,9 +270,9 @@ fun MonthYearSelector(
                 }
             }
         }
-
     }
 }
+
 
 
 
@@ -293,21 +337,26 @@ fun downloadScreenAsPdf(context: Context, view: View) {
 
 @Composable
 fun ChartCard(content: @Composable () -> Unit) {
-    val colors = MaterialTheme.colorScheme
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .border(
+                width = 1.dp,
+                color = Color.DarkGray,
+                shape = RoundedCornerShape(12.dp)
+            ),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Box(modifier = Modifier.padding(16.dp)) {
             content()
         }
     }
 }
+
+
 
 
 
