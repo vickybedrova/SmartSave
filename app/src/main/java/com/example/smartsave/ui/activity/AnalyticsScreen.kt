@@ -108,7 +108,7 @@ fun AnalyticsScreen(navController: NavController) {
                 contentDescription = "Calendar",
                 tint = blue,
                 modifier = Modifier
-                    .size(height = 40.dp, width = 40.dp) // Match Button height
+                    .size(height = 40.dp, width = 40.dp)
                     .padding(end = 8.dp)            )
             MonthYearSelector(
                 selectedMonth = selectedMonth,
@@ -159,7 +159,7 @@ fun AnalyticsCard(value: String, label: String) {
         modifier = Modifier
             .size(width = 110.dp, height = 120.dp)
             .background(
-                color = colors.surfaceVariant, // grey-ish background
+                color = colors.surfaceVariant,
                 shape = RoundedCornerShape(16.dp)
             )
             .padding(16.dp)
@@ -210,7 +210,6 @@ fun MonthYearSelector(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Month Button
         Box {
             Button(
                 onClick = { isMonthExpanded = true },
@@ -243,7 +242,6 @@ fun MonthYearSelector(
             }
         }
 
-        // Year Button
         Box {
             Button(
                 onClick = { isYearExpanded = true },
@@ -295,7 +293,6 @@ fun downloadScreenAsPdf(context: Context, view: View) {
 
     try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Android 10+ (API 29+)
             val resolver = context.contentResolver
             val contentValues = ContentValues().apply {
                 put(MediaStore.Downloads.DISPLAY_NAME, fileName)
@@ -320,7 +317,6 @@ fun downloadScreenAsPdf(context: Context, view: View) {
                 Toast.makeText(context, "Failed to create file", Toast.LENGTH_SHORT).show()
             }
         } else {
-            // Android 9 and below (API < 29)
             val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             if (!downloadsDir.exists()) downloadsDir.mkdirs()
 
@@ -388,7 +384,6 @@ fun LineChart() {
             .fillMaxWidth()
             .height(200.dp)
         ) {
-            // Y-axis labels
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -447,7 +442,6 @@ fun LineChart() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // X-axis labels
         Row(
             modifier = Modifier
                 .fillMaxWidth()

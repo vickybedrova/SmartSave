@@ -34,7 +34,6 @@ data class WelcomeCarouselSlide(
     val imageResId: Int
 )
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WelcomeScreen(navController: NavController) {
     val slides = listOf(

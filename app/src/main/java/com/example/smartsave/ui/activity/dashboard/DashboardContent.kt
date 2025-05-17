@@ -152,9 +152,9 @@ fun DashboardContent(
             OutlinedButton(
                 onClick = onWithdrawClicked,
                 colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = blue // sets icon and text color
+                    contentColor = blue
                 ),
-                border = BorderStroke(1.dp, blue) // sets outline color
+                border = BorderStroke(1.dp, blue)
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_transit_enterexit_24),
@@ -251,7 +251,6 @@ fun DashboardContent(
 
 }
 
-// Ensure these helper Composables are in this file or correctly imported
 @Composable
 fun FilterButton(
     text: String,

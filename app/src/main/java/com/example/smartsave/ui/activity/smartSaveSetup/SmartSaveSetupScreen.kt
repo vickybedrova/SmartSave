@@ -17,7 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavController
 import com.example.smartsave.R
-import com.example.smartsave.model.SmartSaveProfile // Import your data class
+import com.example.smartsave.model.SmartSaveProfile
 import com.example.smartsave.ui.navigation.Screen
 import com.example.smartsave.ui.theme.blue
 import com.google.firebase.auth.FirebaseAuth
@@ -28,7 +28,7 @@ import com.google.firebase.database.ValueEventListener
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.math.roundToInt // Import for rounding
+import kotlin.math.roundToInt
 
 private const val TAG_SETUP_SCREEN = "SmartSaveSetupScreen"
 
@@ -69,7 +69,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
                     profile?.let {
                         val loadedPercentage = it.savingsPercentage.toFloat()
                         Log.d(TAG_SETUP_SCREEN, "Profile loaded. DB savingsPercentage: ${it.savingsPercentage}, converted toFloat: $loadedPercentage")
-                        percentage = loadedPercentage // Update slider
+                        percentage = loadedPercentage
                     }
                 } else { /* ... no existing profile ... */
                     Log.d(TAG_SETUP_SCREEN, "No existing profile found for user $userId.")
@@ -127,23 +127,17 @@ fun SmartSaveSetupScreen(navController: NavController) {
                         text = stringResource(R.string.percentage_to_save),
                         style = typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
                     )
-                    // --- MODIFIED DISPLAY TO SHOW FLOAT FOR DEBUG ---
                     Text(
-                        // text = "${percentage.toInt()}%", // Original display
-                        text = "${percentage.roundToInt()}% ", // Display rounded and raw float
+                        text = "${percentage.roundToInt()}% ",
                         style = typography.bodyLarge
                     )
-                    // --- END MODIFIED DISPLAY ---
                 }
 
                 Slider(
                     value = percentage,
                     onValueChange = { newValue ->
                         Log.d(TAG_SETUP_SCREEN, "Slider onValueChange - raw newValue from slider: $newValue")
-                        // Option 1: Direct assignment (current behavior)
                         percentage = newValue
-                        // Option 2: Force rounding (if slider produces tiny decimals despite steps)
-                        // percentage = newValue.roundToInt().toFloat()
                         Log.d(TAG_SETUP_SCREEN, "Slider onValueChange - 'percentage' state updated to: $percentage")
                     },
                     valueRange = 1f..15f,
@@ -204,24 +198,22 @@ fun SmartSaveSetupScreen(navController: NavController) {
                     val userId = currentUser.uid
                     val profileRef = database.reference.child("smartSaveProfile").child(userId)
 
-                    // --- ADD LOGGING BEFORE SAVING ---
-                    val percentageToSaveFloat = percentage // Current state (Float)
-                    val percentageToSaveInt = percentage.roundToInt() // What you intend to save as whole number
-                    val percentageToSaveDouble = percentageToSaveInt.toDouble() // The value actually being saved as Double
+                    val percentageToSaveFloat = percentage
+                    val percentageToSaveInt = percentage.roundToInt()
+                    val percentageToSaveDouble = percentageToSaveInt.toDouble()
 
                     Log.d(TAG_SETUP_SCREEN, "Save Clicked: Raw 'percentage' state (Float): $percentageToSaveFloat")
                     Log.d(TAG_SETUP_SCREEN, "Save Clicked: Rounded 'percentage' state (Int): $percentageToSaveInt")
                     Log.d(TAG_SETUP_SCREEN, "Save Clicked: Value being saved to Firebase (Double): $percentageToSaveDouble")
-                    // --- END LOGGING ---
 
-                    val newSavingsPercentage = percentageToSaveDouble // Use the rounded integer then converted to double
+                    val newSavingsPercentage = percentageToSaveDouble
 
                     if (existingProfile != null) {
                         Log.d(TAG_SETUP_SCREEN, "Updating existing profile. Saving percentage: $newSavingsPercentage for user $userId")
                         val updates = HashMap<String, Any>()
-                        updates["savingsPercentage"] = newSavingsPercentage // Use the potentially rounded value
+                        updates["savingsPercentage"] = newSavingsPercentage
                         profileRef.updateChildren(updates)
-                            .addOnSuccessListener { /* ... success navigation ... */
+                            .addOnSuccessListener {
                                 Log.d(TAG_SETUP_SCREEN, "SmartSave percentage updated successfully to $newSavingsPercentage")
                                 Toast.makeText(context, "Savings percentage updated!", Toast.LENGTH_SHORT).show()
                                 isSaving = false
@@ -235,18 +227,17 @@ fun SmartSaveSetupScreen(navController: NavController) {
                                 isSaving = false
                             }
                     } else {
-                        // --- CREATE MODE: Set the initial profile (as before) ---
                         Log.d(TAG_SETUP_SCREEN, "Creating new profile. Percentage: $newSavingsPercentage for user $userId")
                         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                         val currentDate = sdf.format(Date())
                         val newStartDate = currentDate
-                        val newTotalSaved = 0.0 // Initial total saved
+                        val newTotalSaved = 0.0
 
                         val profileToSave = SmartSaveProfile(
                             newSavingsPercentage,
                             newStartDate,
                             newTotalSaved,
-                            true // <<< ENSURE isActive is set, typically to true
+                            true
                         )
                         profileRef.setValue(profileToSave)
                             .addOnSuccessListener { /* ... success navigation ... */

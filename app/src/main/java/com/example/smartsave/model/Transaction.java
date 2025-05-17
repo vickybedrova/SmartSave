@@ -6,35 +6,31 @@ import com.google.firebase.database.IgnoreExtraProperties;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Objects;
 
-@IgnoreExtraProperties // Important: Ignores fields in DB not in class
+@IgnoreExtraProperties
 public class Transaction {
-
-    private String id; // To store the Firebase push ID
+    private String id;
 
     private String description;
     private double amount;
-    private String type; // e.g., "INCOME", "WITHDRAW"
-    private double savingsCalculated; // The part of 'amount' that went to savings (for INCOME/EXPENSE)
-    private long timestamp; // Will be Long when retrieved from Firebase
-    private String currency; // e.g., "EUR" - Assuming a default or fetched from profile
+    private String type;
+    private double savingsCalculated;
+    private long timestamp;
+    private String currency;
 
-    // No-argument constructor required for Firebase deserialization
+
     public Transaction() {
     }
 
-    // Optional: A constructor for manual creation if needed, though Firebase uses the no-arg one
     public Transaction(String description, double amount, String type, double savingsCalculated, long timestamp, String currency) {
         this.description = description;
         this.amount = amount;
         this.type = type;
         this.savingsCalculated = savingsCalculated;
         this.timestamp = timestamp;
-        this.currency = currency; // You might want a default like "EUR" or "BGN"
+        this.currency = currency;
     }
 
-    // --- Getters ---
     public String getId() { return id; }
     public String getDescription() { return description; }
     public double getAmount() { return amount; }
@@ -43,7 +39,6 @@ public class Transaction {
     public long getTimestamp() { return timestamp; }
     public String getCurrency() { return currency == null ? "EUR" : currency; } // Default currency if null
 
-    // --- Setters (Firebase needs these or public fields for deserialization) ---
     public void setId(String id) { this.id = id; }
     public void setDescription(String description) { this.description = description; }
     public void setAmount(double amount) { this.amount = amount; }
@@ -51,9 +46,6 @@ public class Transaction {
     public void setSavingsCalculated(double savingsCalculated) { this.savingsCalculated = savingsCalculated; }
     public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
     public void setCurrency(String currency) { this.currency = currency; }
-
-
-    // --- Helper methods for UI display (Excluded from Firebase) ---
 
     @Exclude
     public String getFormattedDate(String format) {
@@ -69,48 +61,38 @@ public class Transaction {
 
     @Exclude
     public String getSavingsImpactForList() {
-        // Based on your Firebase structure: "WITHDRAW" type directly affects savings with its 'amount'.
-        // "INCOME" (and presumably "EXPENSE" if you add it) affects savings via 'savingsCalculated'.
-        // Let's add "INTEREST_PAYMENT" as a type that positively impacts savings with its 'amount'.
         switch (type != null ? type.toUpperCase() : "") {
             case "INCOME":
-            case "EXPENSE": // Assuming expenses also contribute a percentage to savings
+            case "EXPENSE":
                 if (savingsCalculated > 0) {
                     return String.format(Locale.US, "+ %.2f %s", savingsCalculated, getCurrency());
-                } else if (savingsCalculated < 0) { // Unlikely for 'savingsCalculated' but for completeness
+                } else if (savingsCalculated < 0) {
                     return String.format(Locale.US, "%.2f %s", savingsCalculated, getCurrency());
                 }
-                return ""; // No savings impact shown if 0
-            case "WITHDRAW": // Your existing type from DB
+                return "";
+            case "WITHDRAW":
                 return String.format(Locale.US, "- %.2f %s", amount, getCurrency());
-            case "SAVINGS_DEPOSIT": // If you add manual deposits to savings
-            case "INTEREST_PAYMENT": // For interest earned
+            case "SAVINGS_DEPOSIT":
+            case "INTEREST_PAYMENT":
                 return String.format(Locale.US, "+ %.2f %s", amount, getCurrency());
             default:
-                return ""; // Or some default for unknown types
+                return "";
         }
     }
 
     @Exclude
     public String getDisplayAmountForList() {
-        // For INCOME/EXPENSE, show the gross amount.
-        // For WITHDRAW, SAVINGS_DEPOSIT, INTEREST_PAYMENT, 'amount' IS the direct impact.
-        // We want to AVOID showing "Amount: X" if it's a direct savings impact type.
         String typeUpper = (type != null) ? type.toUpperCase() : "";
 
         switch (typeUpper) {
             case "INCOME":
             case "EXPENSE":
-                // For income/expense, 'amount' is the gross transaction value.
-                // 'savingsCalculated' is the portion that went to savings.
                 return String.format(Locale.US, "Amount: %.2f %s", amount, getCurrency());
             case "WITHDRAW":
             case "SAVINGS_DEPOSIT":
             case "INTEREST_PAYMENT":
-                // For these types, 'amount' is the direct value affecting savings.
-                return ""; // Or: return String.format(Locale.US, "Value: %.2f %s", amount, getCurrency());
+                return "";
             default:
-                // Fallback for unknown types, show the amount if present
                 if (amount != 0) {
                     return String.format(Locale.US, "Amount: %.2f %s", amount, getCurrency());
                 }
@@ -118,7 +100,6 @@ public class Transaction {
         }
     }
 
-    // Optional: toString, equals, hashCode for debugging or use in collections
     @Override
     public String toString() {
         return "Transaction{" +
