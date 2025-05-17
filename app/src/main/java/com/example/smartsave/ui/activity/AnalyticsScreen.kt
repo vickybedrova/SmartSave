@@ -124,8 +124,8 @@ fun AnalyticsScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            AnalyticsCard(value = "750 BGN", label = "Total Saved")
-            AnalyticsCard(value = "5 BGN", label = "This Month")
+            AnalyticsCard(value = "750 EUR", label = "Total Saved")
+            AnalyticsCard(value = "5 EUR", label = "This Month")
             AnalyticsCard(value = "3", label = "Progress This Month")
         }
 
