@@ -19,6 +19,7 @@ import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.example.smartsave.ui.navigation.Screen
 import com.example.smartsave.ui.theme.SmartSaveTextFieldColors
+import com.example.smartsave.ui.theme.blue
 import com.example.smartsave.util.SavingsCalculator // Import your SavingsCalculator
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -158,7 +159,10 @@ fun LoginScreen(navController: NavController) {
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(32.dp),
-            enabled = !isLoading
+            enabled = !isLoading,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = blue,
+            )
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
@@ -180,7 +184,7 @@ fun LoginScreen(navController: NavController) {
             Text(
                 text = "Signup on myPOS.com",
                 style = typography.bodyMedium.copy(
-                    color = colors.primary, // Ensure colors is defined or use MaterialTheme.colorScheme
+                    color = blue,
                     fontWeight = FontWeight.Medium
                 ),
                 modifier = Modifier

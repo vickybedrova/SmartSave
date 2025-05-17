@@ -12,11 +12,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.smartsave.R
+import com.example.smartsave.ui.theme.blue
 import com.example.smartsave.ui.theme.greyFieldBackground
 
 @Composable
@@ -38,15 +40,9 @@ fun WithdrawScreen(navController: NavController) {
                 Icon(
                     painter = painterResource(id = R.drawable.baseline_arrow_circle_left_24),
                     contentDescription = "Return",
-                    tint = colors.primary
+                    tint = blue
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "SmartSave",
-                style = typography.titleSmall.copy(fontSize = 16.sp),
-                color = colors.onBackground
-            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -54,8 +50,9 @@ fun WithdrawScreen(navController: NavController) {
         // Title
         Text(
             text = "WITHDRAW SAVINGS",
-            style = typography.headlineLarge.copy(lineHeight = 36.sp),
-            color = colors.primary,
+            fontSize = 20.sp,
+            color = blue,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
@@ -67,7 +64,7 @@ fun WithdrawScreen(navController: NavController) {
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .size(160.dp)
-                .border(width = 4.dp, color = colors.primary, shape = CircleShape)
+                .border(width = 4.dp, color = blue, shape = CircleShape)
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
@@ -166,7 +163,7 @@ fun WithdrawScreen(navController: NavController) {
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(32.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
+            colors = ButtonDefaults.buttonColors(containerColor = blue)
         ) {
             Text(
                 text = "Withdraw",

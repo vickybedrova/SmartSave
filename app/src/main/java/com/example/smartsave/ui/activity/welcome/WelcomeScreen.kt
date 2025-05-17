@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.smartsave.R
 import com.example.smartsave.ui.navigation.Screen
+import com.example.smartsave.ui.theme.blue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -112,7 +113,7 @@ fun WelcomeScreen(navController: NavController) {
                         .padding(4.dp)
                         .size(if (selected) 10.dp else 6.dp)
                         .background(
-                            color = if (selected) MaterialTheme.colorScheme.primary else Color.Gray,
+                            color = if (selected) blue else Color.Gray,
                             shape = CircleShape
                         )
                 )
@@ -122,7 +123,7 @@ fun WelcomeScreen(navController: NavController) {
         Button(
             onClick = { navController.navigate(Screen.Login.route) },
             shape = RoundedCornerShape(32.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+            colors = ButtonDefaults.buttonColors(containerColor = blue),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)

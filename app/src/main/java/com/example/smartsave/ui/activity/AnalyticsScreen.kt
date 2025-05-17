@@ -42,6 +42,8 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.example.smartsave.ui.theme.blue
 
 @Composable
 fun AnalyticsScreen(navController: NavController) {
@@ -63,8 +65,9 @@ fun AnalyticsScreen(navController: NavController) {
 
         Text(
             text = "ANALYTICS",
-            style = typography.headlineSmall,
-            color = colors.primary,
+            fontSize = 20.sp,
+            color = blue,
+            fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
@@ -81,7 +84,6 @@ fun AnalyticsScreen(navController: NavController) {
                         painter = painterResource(id = R.drawable.baseline_arrow_circle_left_24),
                         contentDescription = "Return"
                     )                }
-                Text("SmartSave", style = typography.titleSmall)
             }
 
             IconButton(onClick = {
@@ -115,7 +117,7 @@ fun AnalyticsScreen(navController: NavController) {
             Icon(
                 painter = painterResource(id = R.drawable.baseline_calendar_month_24),
                 contentDescription = "Calendar",
-                tint = Color(0xFF2791E9),
+                tint = blue,
                 modifier = Modifier
                     .size(height = 40.dp, width = 40.dp) // Match Button height
                     .padding(end = 8.dp)            )
@@ -199,7 +201,7 @@ fun MonthYearSelector(
     var isMonthExpanded by remember { mutableStateOf(false) }
     var isYearExpanded by remember { mutableStateOf(false) }
 
-    val buttonColor = Color(0xFF2791E9)
+    val buttonColor = blue
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),

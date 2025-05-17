@@ -19,6 +19,7 @@ import androidx.navigation.NavController
 import com.example.smartsave.R
 import com.example.smartsave.model.SmartSaveProfile // Import your data class
 import com.example.smartsave.ui.navigation.Screen
+import com.example.smartsave.ui.theme.blue
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -103,7 +104,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
                             append(stringResource(R.string.customize_your))
                         }
                         append("\n")
-                        withStyle(SpanStyle(color = colors.primary, fontWeight = FontWeight.Bold)) {
+                        withStyle(SpanStyle(color = blue, fontWeight = FontWeight.Bold)) {
                             append(stringResource(R.string.smart_save_by_mypos))
                         }
                     },
@@ -146,11 +147,11 @@ fun SmartSaveSetupScreen(navController: NavController) {
                         Log.d(TAG_SETUP_SCREEN, "Slider onValueChange - 'percentage' state updated to: $percentage")
                     },
                     valueRange = 1f..15f,
-                    steps = 13, // This should give 14 discrete values: 1, 2, ..., 15
+                    steps = 13,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = SliderDefaults.colors(thumbColor = colors.primary, activeTrackColor = colors.primary)
+                    colors = SliderDefaults.colors(thumbColor = blue, activeTrackColor = blue)
                 )
-                Row( /* ... Min/Max Labels ... */
+                Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -158,11 +159,11 @@ fun SmartSaveSetupScreen(navController: NavController) {
                     Text("15%", style = typography.bodySmall)
                 }
                 Spacer(modifier = Modifier.height(24.dp))
-                val annotatedText = buildAnnotatedString { /* ... Terms ... */
+                val annotatedText = buildAnnotatedString {
                     append(stringResource(R.string.agree_to_terms_prefix))
                     append(" ")
                     pushStringAnnotation("terms", "https://example.com/terms")
-                    withStyle(SpanStyle(color = colors.primary)) {
+                    withStyle(SpanStyle(color = blue)) {
                         append(stringResource(R.string.terms_and_conditions))
                     }
                     pop()
@@ -170,13 +171,13 @@ fun SmartSaveSetupScreen(navController: NavController) {
                     append(stringResource(R.string.and_conjunction))
                     append(" ")
                     pushStringAnnotation("privacy", "https://example.com/privacy")
-                    withStyle(SpanStyle(color = colors.primary)) {
+                    withStyle(SpanStyle(color = blue)) {
                         append(stringResource(R.string.privacy_statement))
                     }
                     pop()
                     append(".")
                 }
-                ClickableText( /* ... Clickable Terms ... */
+                ClickableText(
                     text = annotatedText,
                     onClick = { offset ->
                         annotatedText.getStringAnnotations(tag = "terms", start = offset, end = offset)
@@ -195,7 +196,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
 
             Button(
                 onClick = {
-                    if (currentUser == null) { /* ... user null check ... */
+                    if (currentUser == null) {
                         Toast.makeText(context, "Error: User not logged in.", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
@@ -265,7 +266,7 @@ fun SmartSaveSetupScreen(navController: NavController) {
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(32.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
+                colors = ButtonDefaults.buttonColors(containerColor = blue),
                 enabled = !isSaving && initialProfileFetched
             ) { /* ... Button Text ... */
                 if (isSaving) {

@@ -1,11 +1,13 @@
 package com.example.smartsave
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
@@ -24,6 +26,8 @@ import com.example.smartsave.model.Transaction
 import com.example.smartsave.ui.activity.dashboard.TransactionFilter
 import java.util.Locale
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import com.example.smartsave.ui.theme.blue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,73 +48,62 @@ fun DashboardContent(
     onAdjustClicked: () -> Unit,
     onAnalyticsClicked: () -> Unit
 ) {
+    val scrollState = rememberScrollState()
+
     Column(
+
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TextButton(
-                onClick = onLogout,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
+            Text(
+                text = "SMARTSAVE OVERVIEW",
+                fontSize = 20.sp,
+                color = blue,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+
+            IconButton(onClick = onLogout) {
                 Icon(
                     imageVector = Icons.Default.ExitToApp,
                     contentDescription = "Logout",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "Logout",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
-
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
 
 
-        Text(
-            "SMARTSAVE OVERVIEW",
-            fontSize = 20.sp,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            "Saving plan: ${String.format("%.0f", savingsPercentage)}%",
-            fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ActionButton(
                 text = "Adjust",
-                iconPainter = painterResource(id = R.drawable.baseline_percent_24), // Assuming Painter
+                iconPainter = painterResource(id = R.drawable.baseline_percent_24),
                 onClick = onAdjustClicked
             )
 
-            // --- Pause/Start Button ---
-            val pauseStartText = if (isSmartSaveActive) "Pause" else "Start" // Or "Start"
+            val pauseStartText = if (isSmartSaveActive) "Pause" else "Start"
             val pauseStartIconPainter = if (isSmartSaveActive)
                 painterResource(id = R.drawable.baseline_pause_24)
             else
-                painterResource(id = R.drawable.baseline_play_arrow_24) // Add this drawable
+                painterResource(id = R.drawable.baseline_play_arrow_24)
             ActionButton(
                 text = pauseStartText,
-                iconPainter = pauseStartIconPainter, // Pass the Painter
+                iconPainter = pauseStartIconPainter,
                 onClick = onToggleActiveState
             )
-            // --- End Pause/Start Button ---
 
             ActionButton(
                 text = "Analytics",
@@ -120,13 +113,20 @@ fun DashboardContent(
         }
         Spacer(modifier = Modifier.height(16.dp))
 
+        Text(
+            "Saving plan: ${String.format("%.0f", savingsPercentage)}%",
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(160.dp)
                 .border(
                     width = 4.dp,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = blue,
                     shape = CircleShape
                 )
         ) {
@@ -147,10 +147,20 @@ fun DashboardContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text("Total Savings", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
-            Text("Interest Rate (Example: 2.24%)", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Interest Rate (Example: 2.24%)", fontSize = 12.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedButton(onClick = onWithdrawClicked) {
-                Icon(painterResource(id = R.drawable.baseline_transit_enterexit_24), contentDescription = "Withdraw")
+            OutlinedButton(
+                onClick = onWithdrawClicked,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = blue // sets icon and text color
+                ),
+                border = BorderStroke(1.dp, blue) // sets outline color
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_transit_enterexit_24),
+                    contentDescription = "Withdraw",
+                    tint = blue
+                )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text("Withdraw")
             }
@@ -207,13 +217,13 @@ fun DashboardContent(
 
         when {
             isLoading -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally).padding(16.dp))
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
             }
             errorMessage != null -> {
                 Text(
                     "Error: $errorMessage",
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center
                 )
             }
@@ -225,24 +235,20 @@ fun DashboardContent(
                 }
                 Text(
                     emptyMessage,
-                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
             }
             else -> {
-                LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                    items(
-                        items = transactions, // Explicitly name the parameter if compiler is confused
-                        key = { transaction -> transaction.id }
-                    ) { tx ->
-                        TransactionCard(tx)
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
+                transactions.forEach { tx ->
+                    TransactionCard(tx)
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
     }
+
 }
 
 // Ensure these helper Composables are in this file or correctly imported
@@ -257,7 +263,7 @@ fun FilterButton(
         color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier
             .background(
-                if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                if (isSelected) blue else Color.Transparent,
                 shape = MaterialTheme.shapes.small
             )
             .clickable(onClick = onClick)
@@ -269,7 +275,7 @@ fun FilterButton(
 fun ActionButton(text: String, iconPainter: Painter, onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+        colors = ButtonDefaults.buttonColors(containerColor = blue)
     ) {
         Icon(iconPainter, contentDescription = text, tint = MaterialTheme.colorScheme.onPrimary)
         Spacer(modifier = Modifier.width(4.dp))
