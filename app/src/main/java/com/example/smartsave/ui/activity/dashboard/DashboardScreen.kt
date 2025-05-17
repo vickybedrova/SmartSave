@@ -34,6 +34,7 @@ fun DashboardScreen(navController: NavController) {
 
     var transactionsList by remember { mutableStateOf<List<Transaction>>(emptyList()) }
     var totalSavings by remember { mutableStateOf(0.0) }
+    var pendingWithdrawalAmount by remember { mutableStateOf(0.0) }
     var savingsPercentage by remember { mutableStateOf(0.0) }
     var earnedThisMonth by remember { mutableStateOf(0.0) }
     var earnedThisMonthCurrency by remember { mutableStateOf("EUR") }
@@ -54,6 +55,8 @@ fun DashboardScreen(navController: NavController) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val isLoadingOverall = isLoadingProfile || isLoadingTransactions || isLoadingEarnedThisMonth || isLoadingProgressThisMonth
+
+    var pendingText by remember { mutableStateOf<String?>(null) }
 
     DisposableEffect(key1 = auth) {
         val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth -> /* ... */
@@ -134,7 +137,7 @@ fun DashboardScreen(navController: NavController) {
             errorMessage = null
 
             val userTransactionsNodeRef = userProfileRef.child("transactions")
-            var query: Query = userTransactionsNodeRef.orderByChild("timestamp")
+            var query: Query = userTransactionsNodeRef.orderByChild("date")
 
             val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
             var filterMessage = "No transactions yet."
@@ -182,6 +185,15 @@ fun DashboardScreen(navController: NavController) {
                         }
                     }
                     transactionsList = newTransactions.reversed()
+
+                    pendingWithdrawalAmount = newTransactions
+                        .filter { it.type == "PENDING_WITHDRAWAL" }
+                        .sumOf { it.amount }
+
+                    pendingText = if (pendingWithdrawalAmount != 0.0)
+                        String.format(Locale.getDefault(), "%.2f BGN is being withdrawn...", -pendingWithdrawalAmount)
+                    else null
+
                     if (newTransactions.isEmpty() && selectedTransactionFilter != TransactionFilter.ALL) {
 
                     }
@@ -247,7 +259,7 @@ fun DashboardScreen(navController: NavController) {
         progressThisMonthValue = String.format(Locale.getDefault(), "%.2f %s", progressThisMonth, progressThisMonthCurrency),
         selectedFilter = selectedTransactionFilter,
         onFilterSelected = { newFilter -> selectedTransactionFilter = newFilter },
-
+        pendingWithdrawalMessage = pendingText,
         isSmartSaveActive = isSmartSaveActive,
         onToggleActiveState = {
             if (currentAuthUser == null || isTogglingActiveState) {

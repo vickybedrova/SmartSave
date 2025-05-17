@@ -4,14 +4,32 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,10 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.smartsave.model.Transaction
 import com.example.smartsave.ui.activity.dashboard.TransactionFilter
-import java.util.Locale
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import com.example.smartsave.ui.theme.blue
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,8 +62,9 @@ fun DashboardContent(
     onLogout: () -> Unit,
     onWithdrawClicked: () -> Unit,
     onAdjustClicked: () -> Unit,
-    onAnalyticsClicked: () -> Unit
-) {
+    onAnalyticsClicked: () -> Unit,
+    pendingWithdrawalMessage: String?
+){
     val scrollState = rememberScrollState()
 
     Column(
@@ -148,6 +165,14 @@ fun DashboardContent(
         ) {
             Text("Total Savings", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
             Text("Interest Rate (Example: 2.24%)", fontSize = 12.sp)
+            if (!pendingWithdrawalMessage.isNullOrEmpty()) {
+                Text(
+                    pendingWithdrawalMessage,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedButton(
                 onClick = onWithdrawClicked,
@@ -297,8 +322,11 @@ fun InfoCard(title: String, value: String) {
 
 @Composable
 fun TransactionCard(tx: Transaction) {
+    val isPendingWithdrawal = tx.type == "PENDING_WITHDRAWAL"
+
     val savingsImpactText = tx.getSavingsImpactForList()
     val savingsColor = when {
+        isPendingWithdrawal -> Color.Gray
         savingsImpactText.startsWith("+") -> Color(0xFF2E7D32)
         savingsImpactText.startsWith("-") -> Color(0xFFC62828)
         else -> MaterialTheme.colorScheme.onSurfaceVariant

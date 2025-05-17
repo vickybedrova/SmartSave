@@ -49,7 +49,7 @@ public class Transaction {
 
     @Exclude
     public String getFormattedDate(String format) {
-        if (timestamp == 0L) return "N/A";
+        if (timestamp == 0L) return "Processing";
         SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.getDefault());
         return sdf.format(new Date(timestamp));
     }

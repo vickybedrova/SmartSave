@@ -91,7 +91,8 @@ class WithdrawViewModel : ViewModel() {
                     "currency" to "BGN",
                     "type" to "PENDING_WITHDRAWAL",
                     "description" to "Scheduled Withdrawal",
-                    "date" to txTime
+                    "date" to txTime,
+                    "timestamp" to txTime
                 )
 
                 profileRef.child("totalSaved")
